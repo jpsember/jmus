@@ -33,6 +33,7 @@ import js.parsing.Scanner;
 import js.parsing.Token;
 import jmus.gen.MainConfig;
 import js.app.AppOper;
+import js.app.CmdLineArgs;
 import js.file.Files;
 
 public class ExampleOper extends AppOper {
@@ -56,14 +57,60 @@ public class ExampleOper extends AppOper {
   }
 
   @Override
-  public void perform() {
-    Scanner s = new Scanner(dfa(), Files.readString(new File("_SKIP_sample.txt")));
-    while (s.hasNext()) {
-      Token t = s.read();
-      if (t.id(T_CR))
-        continue;
-      pr(t);
+  protected void processAdditionalArgs() {
+    int count = 0;
+    CmdLineArgs args = app().cmdLineArgs();
+    while (args.hasNextArg()) {
+      String arg = args.nextArg();
+
+      switch (arg) {
+      //      case "compact":
+      //        mMode = MODE_COMPACT;
+      //        break;
+      //      case "pretty":
+      //        mMode = MODE_PRETTY;
+      //        break;
+      default: {
+        switch (count) {
+        case 0:
+          mSourceFile = Files.absolute(new File(arg));
+          break;
+        default:
+          throw badArg("extraneous argument:", arg);
+        }
+        count++;
+      }
+        break;
+      }
     }
+    args.assertArgsDone();
+  }
+
+  @Override
+  public void perform() {
+    if (Files.empty(mSourceFile))
+      setError("Please specify a source file");
+
+    mScanner = new Scanner(dfa(), Files.readString(mSourceFile));
+
+    int paragraphNumber = 0;
+    while (mScanner.hasNext()) {
+      if (consumeCR()) {
+        paragraphNumber++;
+        continue;
+      }
+
+      Token t = mScanner.read();
+      pr("(paragraph " + paragraphNumber + "):", t);
+    }
+  }
+
+  private boolean consumeCR() {
+    int crCount = 0;
+    while (mScanner.readIf(T_CR) != null) {
+      crCount++;
+    }
+    return crCount >= 2;
   }
 
   public DFA dfa() {
@@ -73,5 +120,6 @@ public class ExampleOper extends AppOper {
   }
 
   private DFA mDFA;
-
+  private File mSourceFile;
+  private Scanner mScanner;
 }
