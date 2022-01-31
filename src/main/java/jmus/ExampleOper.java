@@ -26,10 +26,18 @@ package jmus;
 
 import static js.base.Tools.*;
 
+import java.io.File;
+
+import js.parsing.DFA;
+import js.parsing.Scanner;
+import js.parsing.Token;
 import jmus.gen.MainConfig;
 import js.app.AppOper;
+import js.file.Files;
 
 public class ExampleOper extends AppOper {
+
+  /* private */ static final int T_WS = 0, T_CR = 1, T_STRING = 2, T_CHORD = 3;
 
   @Override
   public String userCommand() {
@@ -49,7 +57,21 @@ public class ExampleOper extends AppOper {
 
   @Override
   public void perform() {
-    pr("hello");
+    Scanner s = new Scanner(dfa(), Files.readString(new File("_SKIP_sample.txt")));
+    while (s.hasNext()) {
+      Token t = s.read();
+      if (t.id(T_CR))
+        continue;
+      pr(t);
+    }
   }
+
+  public DFA dfa() {
+    if (mDFA == null)
+      mDFA = new DFA(Files.readString(this.getClass(), "tokens.dfa"));
+    return mDFA;
+  }
+
+  private DFA mDFA;
 
 }
