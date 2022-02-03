@@ -10,28 +10,54 @@ import js.json.JSMap;
 
 public final class Util {
 
+  // 
+  // Useful reference for unicode:  https://en.wikipedia.org/wiki/Unicode_subscripts_and_superscripts
+
+  private static final int[] numberToKeyIndex = { 0, 2, 4, 5, 7, 9, 11 };
+  private static final int[] numberToKeyIndexFlat = { 11, 1, 3, 4, 6, 8, 10 };
+  private static final int[] numberToKeyIndexSharp = { 1, 3, 4, 6, 8, 10, 0 };
+
   public static StringBuilder renderChord(Chord chord, Scale scale, StringBuilder sb) {
     if (sb == null)
       sb = new StringBuilder();
 
-    todo("need to do something different if rendering as scale");
-
-    switch (chord.accidental()) {
-    default:
-      break;
-    case FLAT:
-      sb.append('♭');
-      break;
-    case SHARP:
-      sb.append('♯');
-      break;
-    }
-
-    // Useful reference for unicode:  https://en.wikipedia.org/wiki/Unicode_subscripts_and_superscripts
-
     if (scale != null) {
-      sb.append(scale.keys().get(chord.number() - 1));
+
+      int cn = chord.number() - 1;
+
+      int keyIndex;
+
+      switch (chord.accidental()) {
+      case NONE:
+        keyIndex = numberToKeyIndex[cn];
+        break;
+      default:
+        throw notSupported(chord.accidental());
+      case FLAT:
+        keyIndex = numberToKeyIndexFlat[cn];
+        break;
+      case SHARP:
+        keyIndex = numberToKeyIndexSharp[cn];
+        break;
+      }
+
+      sb.append(scale.keys().get(keyIndex));
+
     } else {
+
+     // todo("need to do something different if rendering as scale");
+
+      switch (chord.accidental()) {
+      default:
+        break;
+      case FLAT:
+        sb.append('♭');
+        break;
+      case SHARP:
+        sb.append('♯');
+        break;
+      }
+
       sb.append(chord.number());
     }
 

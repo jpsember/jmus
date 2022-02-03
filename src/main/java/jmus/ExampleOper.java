@@ -115,7 +115,7 @@ public class ExampleOper extends AppOper {
     flushMusicLine();
     flushMusicSection();
 
-    Scale scale = Util.scaleMap().scales().get("b-flat");
+    Scale scale = Util.scaleMap().scales().get("e-flat");
     
     String songText = renderSong(song(), scale);
     System.out.println(songText);
