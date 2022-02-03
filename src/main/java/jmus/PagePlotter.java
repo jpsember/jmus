@@ -10,19 +10,12 @@ import java.awt.GraphicsEnvironment;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.util.List;
 
-import de.erichseifert.vectorgraphics2d.Document;
-import de.erichseifert.vectorgraphics2d.Processor;
-import de.erichseifert.vectorgraphics2d.VectorGraphics2D;
-import de.erichseifert.vectorgraphics2d.eps.EPSProcessor;
-import de.erichseifert.vectorgraphics2d.intermediate.CommandSequence;
-import de.erichseifert.vectorgraphics2d.pdf.PDFProcessor;
-import de.erichseifert.vectorgraphics2d.util.PageSize;
-
+import jmus.gen.TextEntry;
 import js.base.BaseObject;
 import js.file.Files;
+import js.geometry.IPoint;
 import js.geometry.IRect;
 import js.geometry.Matrix;
 import js.graphics.ImgUtil;
@@ -30,83 +23,45 @@ import js.graphics.ImgUtil;
 import static jmus.Util.*;
 
 /**
- * For plotting a song into a PDF file
+ * For plotting a song into a png
  */
 public final class PagePlotter extends BaseObject {
 
   public PagePlotter() {
     loadTools();
-    mGraphics = new VectorGraphics2D();
+    BufferedImage img = mImage = ImgUtil.build(PAGE_SIZE.scaledBy(DOTS_PER_INCH),
+        ImgUtil.PREFERRED_IMAGE_TYPE_COLOR);
+    Graphics2D g = mGraphics = img.createGraphics();
+    g.setColor(Color.white);
+    g.fillRect(0, 0, img.getWidth(), img.getHeight());
+    g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    g.setTransform(Matrix.getScale(DOTS_PER_INCH).toAffineTransform());
+    PAINT_NORMAL.apply(g);
   }
 
   public Graphics2D graphics() {
     return mGraphics;
   }
 
-  public void generateOutputFile(File outputFile) {
-    CommandSequence commands = ((VectorGraphics2D) mGraphics).getCommands();
-
-    Processor processor;
-
-    switch (Files.getExtension(outputFile)) {
-    default:
-      throw notSupported("can't handle extension:", outputFile);
-    case "pdf":
-      processor = new PDFProcessor();
-      break;
-    case "eps":
-      processor = new EPSProcessor();
-      break;
-    }
-
-    /**
-     * <pre>
-     * From the documentation:
-     * 
-     *  public static final PageSize A3 = new PageSize(297.0, 420.0);
-        public static final PageSize A4 = new PageSize(210.0, 297.0);
-        public static final PageSize A5 = new PageSize(148.0, 210.0);
-        
-        ...we can specify a page size ourselves instead of guessing at things.
-     * 
-     * </pre>
-     */
-    PageSize pageSize = new PageSize(850, 1100);
-
-    Document doc = processor.getDocument(commands, pageSize);
-
-    try {
-      doc.writeTo(new FileOutputStream(outputFile));
-    } catch (IOException e) {
-      throw Files.asFileException(e);
-    }
+  public BufferedImage image() {
+    return mImage;
   }
 
-  private Graphics2D mGraphics;
+  public void generateOutputFile(File outputFile) {
+    ImgUtil.writeImage(Files.S, mImage, outputFile);
+  }
 
   public void experiment() {
 
-    BufferedImage img = null;
-
-    if (alert("rendering to normal graphics")) {
-      img = ImgUtil.build(PAGE_SIZE.scaledBy(DOTS_PER_INCH), ImgUtil.PREFERRED_IMAGE_TYPE_COLOR);
-      mGraphics = img.createGraphics();
-      mGraphics.setColor(Color.white);
-      graphics().setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-          RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-      graphics().setTransform(Matrix.getScale(DOTS_PER_INCH).toAffineTransform());
-      fill(0, 0, PAGE_SIZE.x, PAGE_SIZE.y);
-    }
-
     Graphics2D g = graphics();
-    OUR_PAINT.apply(g);
+    PAINT_NORMAL.apply(g);
 
-    g.drawString("Gm   Hello", PAGE_SIZE.x * .6f, 100);
+    // g.drawString("Gm   Hello", PAGE_SIZE.x * .6f, 100);
 
     if (false)
       cross(PAGE_CONTENT.midX(), PAGE_CONTENT.midY());
 
-    {
+    if (false) {
       String[] strs = { "Gm Hello", "E♭ A♭ F♯", "Hippopotamus" };
 
       FontMetrics f = g.getFontMetrics();
@@ -128,33 +83,8 @@ public final class PagePlotter extends BaseObject {
       }
     }
 
-    if (true) {
-      graphics().drawString("\u05E9\u05DC\u05D5\u05DD \u05E2\u05D5\u05DC\u05DD", 600, 600);
-    } else {
-      String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-      int y = PAGE_CONTENT.y + 20;
-      boolean fs = true;
-      for (String s : fonts) {
-        if (y >= PAGE_CONTENT.endY())
-          break;
-
-        Font f = new Font(s, Font.PLAIN, 18);
-
-        if (fs) {
-          f = new Font(Font.MONOSPACED, Font.PLAIN, 11);
-          fs = false;
-        }
-
-        graphics().setFont(f);
-        FontMetrics m = g.getFontMetrics();
-        graphics().drawString(s + "(E♭ A♭ F♯)", PAGE_CONTENT.x + 20, y + m.getAscent());
-
-        char c[] = { '♭' };
-        graphics().drawChars(c, 0, 1, PAGE_CONTENT.x + 180, y + m.getAscent());
-
-        y += m.getHeight();
-      }
-    }
+    if (false)
+      renderFonts(0);
 
     PAINT_LIGHTER.apply(g);
     if (false) {
@@ -172,9 +102,73 @@ public final class PagePlotter extends BaseObject {
     if (false)
       fill(PAGE_CONTENT.midX() - radius / 2, PAGE_CONTENT.midY() - radius / 2, radius, radius);
 
-    ImgUtil.writeImage(Files.S, img, new File("_SKIP_experiment.png"));
-    halt();
-    generateOutputFile(new File("_SKIP_experiment.pdf"));
+    tx().text("Gm Hello");
+    tx().text("E♭ A♭ F♯");
+    tx().heightScale(0.3f).text("―");
+    tx().text("Hippopotamus");
+
+    renderText(new IPoint(600, 200));
+
+    generateOutputFile(new File("_SKIP_experiment.png"));
+  }
+
+  private void renderText(IPoint center) {
+    Graphics2D g = graphics();
+    FontMetrics f = g.getFontMetrics();
+
+    //    int lc = mTextEntries.size();
+    //    int h = f.getHeight() * lc - f.getLeading();
+    //    
+    int y = 0;
+    int maxWidth = 0;
+    for (TextEntry.Builder tx : mTextEntries) {
+      tx.yOffset(y);
+      tx.renderWidth(f.stringWidth(tx.text()));
+      maxWidth = Math.max(maxWidth, tx.renderWidth());
+      // apparently this cast is not required, as += performs type coercion (which is strange)
+      // https://stackoverflow.com/questions/8272635
+      y += (int) (f.getHeight() * tx.heightScale());
+    }
+    int heightTotal = y - f.getLeading();
+
+    int py = center.y - heightTotal / 2;
+    int px = center.x - maxWidth / 2;
+    for (TextEntry.Builder tx : mTextEntries) {
+      graphics().drawString(tx.text(), px, py + tx.yOffset());
+    }
+    mTextEntries.clear();
+  }
+
+  // fontOffset 0, 86, 165
+  //
+  private void renderFonts(int fontOffset) {
+    String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+    int column = -1;
+    int y = -1;
+    int x = -1;
+
+    while (true) {
+      if (fontOffset >= fonts.length)
+        break;
+      String s = fonts[fontOffset];
+      fontOffset++;
+      if (y < 0) {
+        column++;
+        if (column >= 2)
+          break;
+        y = PAGE_CONTENT.y + 20;
+        x = (int) (PAGE_CONTENT.x + 10 + column * PIXELS_PER_INCH * 4f);
+      }
+
+      Font f = new Font(s, Font.BOLD, 18);
+      graphics().setFont(f);
+      FontMetrics m = graphics().getFontMetrics();
+      graphics().drawString(s + "(E♭ A♭ F♯)", x + 20, y + m.getAscent());
+      y += m.getHeight();
+      if (y + m.getAscent() >= PAGE_CONTENT.endY())
+        y = -1;
+    }
+    pr("font offset:", fontOffset);
   }
 
   private void rect(IRect r) {
@@ -191,5 +185,15 @@ public final class PagePlotter extends BaseObject {
     g.drawLine(x - r, y, x + r, y);
     g.drawLine(x, y - r, x, y + 4);
   }
+
+  public TextEntry.Builder tx() {
+    TextEntry.Builder b = TextEntry.newBuilder();
+    mTextEntries.add(b);
+    return b;
+  }
+
+  private BufferedImage mImage;
+  private Graphics2D mGraphics;
+  private List<TextEntry.Builder> mTextEntries = arrayList();
 
 }

@@ -144,10 +144,26 @@ public final class Util {
   public static final IRect PAGE_FULL = new IRect(PAGE_SIZE);
   public static final IRect PAGE_CONTENT = PAGE_FULL.withInset(PAGE_MARGIN);
 
-  public static final Font FONT_BOLD = new Font("Helvetica", Font.BOLD, 18);
+  // Fonts that look ok with regard to spacing of flats, sharps:
+  // -----------------------------------------------------------
+  // Courier
+  // Courier New
+  // Dialog
+  // DialogInput
+  // Helvetica Neue
+  // Lucida Grande
+  // Menlo
+  // Monospaced
+  // SansSerif
+  //
+  // (Maybe there is some way to improve the spacing so other fonts can be used as well?)
+  // (A custom drawString that shifts some chars over...)
 
-  public static final Paint OUR_PAINT = Paint.newBuilder().font(FONT_BOLD, 1f).color(Color.black).width(1f)
+  public static final String FONT_NAME = "Dialog";
+  
+  public static final Font FONT_BOLD = new Font(FONT_NAME, Font.BOLD, 18);
+  public static final Paint PAINT_NORMAL = Paint.newBuilder().font(FONT_BOLD, 1f).color(Color.black).width(1f)
       .build();
-  public static final Paint PAINT_LIGHTER = OUR_PAINT.toBuilder().color(64, 64, 64).build();
+  public static final Paint PAINT_LIGHTER = PAINT_NORMAL.toBuilder().color(64, 64, 64).build();
 
 }
