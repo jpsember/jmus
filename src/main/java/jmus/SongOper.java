@@ -28,7 +28,6 @@ import static js.base.Tools.*;
 
 import java.io.File;
 
-import js.parsing.DFA;
 import js.parsing.Scanner;
 import js.parsing.Token;
 
@@ -47,10 +46,9 @@ import js.app.AppOper;
 import js.app.CmdLineArgs;
 import js.file.Files;
 
-public class ExampleOper extends AppOper {
+public class SongOper extends AppOper {
 
-  /* private */ static final int T_WS = 0, T_CR = 1, T_STRING = 2, T_CHORD = 3;
-
+ 
   @Override
   public String userCommand() {
     return "main";
@@ -165,12 +163,6 @@ public class ExampleOper extends AppOper {
     return Math.min(crCount, 2);
   }
 
-  private DFA dfa() {
-    if (mDFA == null)
-      mDFA = new DFA(Files.readString(this.getClass(), "tokens.dfa"));
-    return mDFA;
-  }
-
   private Chord parseChord(Token t) {
     try {
       Chord.Builder b = Chord.newBuilder();
@@ -252,7 +244,6 @@ public class ExampleOper extends AppOper {
     return lineBuilder.toString();
   }
 
-  private DFA mDFA;
   private File mSourceFile;
   private Scanner mScanner;
   private Song.Builder mSongBuilder;

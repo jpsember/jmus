@@ -46,7 +46,7 @@ public class Main extends App {
 
   @Override
   protected void registerOperations() {
-    registerOper(new ExampleOper());
+    registerOper(new SongOper());
   }
 
 }

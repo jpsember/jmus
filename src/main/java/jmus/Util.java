@@ -7,6 +7,7 @@ import jmus.gen.Scale;
 import jmus.gen.ScaleMap;
 import js.file.Files;
 import js.json.JSMap;
+import js.parsing.DFA;
 
 public final class Util {
 
@@ -44,8 +45,6 @@ public final class Util {
       sb.append(scale.keys().get(keyIndex));
 
     } else {
-
-     // todo("need to do something different if rendering as scale");
 
       switch (chord.accidental()) {
       default:
@@ -109,5 +108,19 @@ public final class Util {
   }
 
   private static ScaleMap sScaleMap;
+
+  // ------------------------------------------------------------------
+  // Parsing
+  // ------------------------------------------------------------------
+
+  public static DFA dfa() {
+    if (mDFA == null)
+      mDFA = new DFA(Files.readString(Util.class, "tokens.dfa"));
+    return mDFA;
+  }
+
+  private static DFA mDFA;
+
+  public static final int T_WS = 0, T_CR = 1, T_STRING = 2, T_CHORD = 3;
 
 }
