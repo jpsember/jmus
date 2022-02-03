@@ -1,0 +1,5 @@
+enum {
+  none,
+  sharp,
+  flat,
+}

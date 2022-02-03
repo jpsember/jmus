@@ -10,7 +10,11 @@ STRING: (  '  ([^\0x0a\0x0d\0x09'] | \\')* ' \
         |  "  ([^\0x0a\0x0d\0x09"] | \\")* " \
         )
 
-CHORD: [1-7][-'+]?[245679]?
+
+# See: https://musescore.org/sites/musescore.org/files/NNSdescription.pdf
+
+CHORD: [#b]?[1-7][-'+]?[245679]?
+
 #EQUALS: =
 
 #IDENTIFIER: [a-zA-Z_][a-zA-Z_0-9]*(\.([a-zA-Z_][a-zA-Z_0-9]*))*

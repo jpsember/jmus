@@ -1,0 +1,12 @@
+enum ChordType;
+enum Accidental;
+enum OptType;
+
+fields {
+
+  Accidental accidental;
+  ChordType type;
+  OptType opt_type;
+
+  int number;
+}

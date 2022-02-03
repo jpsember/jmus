@@ -31,7 +31,11 @@ import java.io.File;
 import js.parsing.DFA;
 import js.parsing.Scanner;
 import js.parsing.Token;
+import jmus.gen.Accidental;
+import jmus.gen.Chord;
+import jmus.gen.ChordType;
 import jmus.gen.MainConfig;
+import jmus.gen.OptType;
 import js.app.AppOper;
 import js.app.CmdLineArgs;
 import js.file.Files;
@@ -100,8 +104,9 @@ public class ExampleOper extends AppOper {
         continue;
       }
 
-      Token t = mScanner.read();
-      pr("(paragraph " + paragraphNumber + "):", t);
+      Token t = mScanner.read(T_CHORD);
+      Chord c = parseChord(t);
+      pr("(paragraph " + paragraphNumber + "):", INDENT, c);
     }
   }
 
@@ -117,6 +122,67 @@ public class ExampleOper extends AppOper {
     if (mDFA == null)
       mDFA = new DFA(Files.readString(this.getClass(), "tokens.dfa"));
     return mDFA;
+  }
+
+  private Chord parseChord(Token t) {
+    try {
+      Chord.Builder b = Chord.newBuilder();
+      String s = t.text();
+      int k = 0;
+      char c;
+
+      c = s.charAt(k);
+      if (c == 'b' || c == '#') {
+        b.accidental(c == 'b' ? Accidental.FLAT : Accidental.SHARP);
+        k++;
+      }
+
+      c = s.charAt(k++);
+      int num = 1 + (c - '1');
+      checkArgument(num >= 1 && num <= 7);
+      b.number(num);
+
+      while (k < s.length()) {
+        c = s.charAt(k++);
+        switch (c) {
+        default:
+          throw badArg("unsupported character:", Character.toString(c));
+        case '-':
+          b.type(ChordType.MINOR);
+          break;
+        case '\'':
+          b.type(ChordType.DIMINISHED);
+          break;
+        case '+':
+          b.type(ChordType.AUGMENTED);
+          break;
+        case '2':
+          b.optType(OptType.TWO);
+          break;
+        case '4':
+          b.optType(OptType.FOUR);
+          break;
+        case '5':
+          b.optType(OptType.FIVE);
+          break;
+        case '6':
+          b.optType(OptType.SIX);
+          break;
+        case '7':
+          b.optType(OptType.SEVEN);
+          break;
+        case '9':
+          b.optType(OptType.NINE);
+          break;
+        }
+      }
+
+      checkState(k == s.length());
+
+      return b.build();
+    } catch (Throwable th) {
+      throw t.fail("Trouble parsing chord");
+    }
   }
 
   private DFA mDFA;

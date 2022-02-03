@@ -1,0 +1,6 @@
+enum {
+  major,
+  minor,
+  diminished,
+  augmented,
+}
