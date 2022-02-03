@@ -48,7 +48,6 @@ import js.file.Files;
 
 public class SongOper extends AppOper {
 
- 
   @Override
   public String userCommand() {
     return "main";
@@ -90,6 +89,12 @@ public class SongOper extends AppOper {
 
   @Override
   public void perform() {
+
+    if (true) {
+      new PagePlotter().experiment();
+      return;
+    }
+
     if (Files.empty(mSourceFile))
       setError("Please specify a source file");
 
@@ -114,7 +119,7 @@ public class SongOper extends AppOper {
     flushMusicSection();
 
     Scale scale = Util.scaleMap().scales().get("e-flat");
-    
+
     String songText = renderSong(song(), scale);
     System.out.println(songText);
 

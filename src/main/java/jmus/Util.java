@@ -2,10 +2,16 @@ package jmus;
 
 import static js.base.Tools.*;
 
+import java.awt.Color;
+import java.awt.Font;
+
 import jmus.gen.Chord;
 import jmus.gen.Scale;
 import jmus.gen.ScaleMap;
 import js.file.Files;
+import js.geometry.IPoint;
+import js.geometry.IRect;
+import js.graphics.Paint;
 import js.json.JSMap;
 import js.parsing.DFA;
 
@@ -122,5 +128,20 @@ public final class Util {
   private static DFA mDFA;
 
   public static final int T_WS = 0, T_CR = 1, T_STRING = 2, T_CHORD = 3;
+
+  // ------------------------------------------------------------------
+  // Rendering
+  // ------------------------------------------------------------------
+
+  public static final IPoint PAGE_SIZE = new IPoint(850, 1100);
+  public static final int PAGE_MARGIN = 25;
+  public static final IRect PAGE_FULL = new IRect(PAGE_SIZE);
+  public static final IRect PAGE_CONTENT = PAGE_FULL.withInset(PAGE_MARGIN);
+
+  public static final Font FONT_BOLD = new Font("helvetica", Font.BOLD, 18);
+
+  public static final Paint OUR_PAINT = Paint.newBuilder().font(FONT_BOLD, 1f).color(Color.black).width(1f)
+      .build();
+  public static final Paint PAINT_LIGHTER = OUR_PAINT.toBuilder().color(64, 64, 64).build();
 
 }
