@@ -35,7 +35,10 @@ import jmus.gen.Accidental;
 import jmus.gen.Chord;
 import jmus.gen.ChordType;
 import jmus.gen.MainConfig;
+import jmus.gen.MusicLine;
+import jmus.gen.MusicSection;
 import jmus.gen.OptType;
+import jmus.gen.Song;
 import js.app.AppOper;
 import js.app.CmdLineArgs;
 import js.file.Files;
@@ -46,7 +49,6 @@ public class ExampleOper extends AppOper {
 
   @Override
   public String userCommand() {
-    loadTools();
     return "main";
   }
 
@@ -68,12 +70,6 @@ public class ExampleOper extends AppOper {
       String arg = args.nextArg();
 
       switch (arg) {
-      //      case "compact":
-      //        mMode = MODE_COMPACT;
-      //        break;
-      //      case "pretty":
-      //        mMode = MODE_PRETTY;
-      //        break;
       default: {
         switch (count) {
         case 0:
@@ -97,28 +93,71 @@ public class ExampleOper extends AppOper {
 
     mScanner = new Scanner(dfa(), Files.readString(mSourceFile));
 
-    int paragraphNumber = 0;
     while (mScanner.hasNext()) {
-      if (consumeCR()) {
-        paragraphNumber++;
+
+      int crs = consumeCR();
+      if (crs != 0) {
+        flushMusicLine();
+        if (crs == 2)
+          flushMusicSection();
         continue;
       }
 
       Token t = mScanner.read(T_CHORD);
       Chord c = parseChord(t);
-      pr("(paragraph " + paragraphNumber + "):", INDENT, c);
+      musicLine().chords().add(c);
+    }
+
+    flushMusicLine();
+    flushMusicSection();
+
+    pr(song());
+  }
+
+  private Song.Builder song() {
+    if (mSongBuilder == null) {
+      mSongBuilder = Song.newBuilder();
+    }
+    return mSongBuilder;
+  }
+
+  private void flushMusicSection() {
+    if (!musicSection().lines().isEmpty()) {
+      song().sections().add(musicSection().build());
+      mMusicSectionBuilder = null;
     }
   }
 
-  private boolean consumeCR() {
+  private MusicSection.Builder musicSection() {
+    if (mMusicSectionBuilder == null) {
+      mMusicSectionBuilder = MusicSection.newBuilder();
+    }
+    return mMusicSectionBuilder;
+  }
+
+  private MusicLine.Builder musicLine() {
+    if (mMusicLineBuilder == null) {
+      mMusicLineBuilder = MusicLine.newBuilder();
+    }
+    return mMusicLineBuilder;
+  }
+
+  private void flushMusicLine() {
+    if (!musicLine().chords().isEmpty()) {
+      musicSection().lines().add(musicLine().build());
+      mMusicLineBuilder = null;
+    }
+  }
+
+  private int consumeCR() {
     int crCount = 0;
     while (mScanner.readIf(T_CR) != null) {
       crCount++;
     }
-    return crCount >= 2;
+    return Math.min(crCount, 2);
   }
 
-  public DFA dfa() {
+  private DFA dfa() {
     if (mDFA == null)
       mDFA = new DFA(Files.readString(this.getClass(), "tokens.dfa"));
     return mDFA;
@@ -176,9 +215,6 @@ public class ExampleOper extends AppOper {
           break;
         }
       }
-
-      checkState(k == s.length());
-
       return b.build();
     } catch (Throwable th) {
       throw t.fail("Trouble parsing chord");
@@ -188,4 +224,8 @@ public class ExampleOper extends AppOper {
   private DFA mDFA;
   private File mSourceFile;
   private Scanner mScanner;
+  private Song.Builder mSongBuilder;
+  private MusicSection.Builder mMusicSectionBuilder;
+  private MusicLine.Builder mMusicLineBuilder;
+
 }
