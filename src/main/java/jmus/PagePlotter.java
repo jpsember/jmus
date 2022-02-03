@@ -56,55 +56,14 @@ public final class PagePlotter extends BaseObject {
     Graphics2D g = graphics();
     PAINT_NORMAL.apply(g);
 
-    // g.drawString("Gm   Hello", PAGE_SIZE.x * .6f, 100);
-
-    if (false)
-      cross(PAGE_CONTENT.midX(), PAGE_CONTENT.midY());
-
-    if (false) {
-      String[] strs = { "Gm Hello", "E♭ A♭ F♯", "Hippopotamus" };
-
-      FontMetrics f = g.getFontMetrics();
-
-      int lc = strs.length;
-      int h = f.getHeight() * lc - f.getLeading();
-
-      int w = 0;
-      for (String s : strs) {
-        w = Math.max(w, f.stringWidth(s));
-      }
-      IRect b = new IRect(PAGE_CONTENT.midX() - w / 2, PAGE_CONTENT.midY() - h / 2, w, h);
-      rect(b);
-
-      int py = b.y + f.getAscent();
-      for (String s : strs) {
-        graphics().drawString(s, b.x, py);
-        py += f.getHeight();
-      }
-    }
-
     if (false)
       renderFonts(0);
 
     PAINT_LIGHTER.apply(g);
-    if (false) {
-      rect(PAGE_FULL);
-      rect(PAGE_FULL.withInset(PAGE_MARGIN / 2));
-    }
-
-    int radius = 30;
-    int pad = 25;
-    if (false) {
-      fill(PAGE_MARGIN + pad, PAGE_MARGIN + pad, radius, radius);
-      fill(PAGE_SIZE.x - PAGE_MARGIN - radius - pad, PAGE_SIZE.y - PAGE_MARGIN - radius - pad, radius,
-          radius);
-    }
-    if (false)
-      fill(PAGE_CONTENT.midX() - radius / 2, PAGE_CONTENT.midY() - radius / 2, radius, radius);
 
     tx().text("Gm Hello");
     tx().text("E♭ A♭ F♯");
-    tx().heightScale(0.3f).text("―");
+    tx().heightScale(0.5f).text("~dash");
     tx().text("Hippopotamus");
 
     renderText(new IPoint(600, 200));
@@ -116,14 +75,15 @@ public final class PagePlotter extends BaseObject {
     Graphics2D g = graphics();
     FontMetrics f = g.getFontMetrics();
 
-    //    int lc = mTextEntries.size();
-    //    int h = f.getHeight() * lc - f.getLeading();
-    //    
     int y = 0;
     int maxWidth = 0;
     for (TextEntry.Builder tx : mTextEntries) {
       tx.yOffset(y);
-      tx.renderWidth(f.stringWidth(tx.text()));
+
+      if (tx.text().startsWith("~")) {
+      } else
+        tx.renderWidth(f.stringWidth(tx.text()));
+
       maxWidth = Math.max(maxWidth, tx.renderWidth());
       // apparently this cast is not required, as += performs type coercion (which is strange)
       // https://stackoverflow.com/questions/8272635
@@ -132,9 +92,23 @@ public final class PagePlotter extends BaseObject {
     int heightTotal = y - f.getLeading();
 
     int py = center.y - heightTotal / 2;
-    int px = center.x - maxWidth / 2;
+    int x0 = center.x - maxWidth / 2;
+    int x1 = center.x + maxWidth / 2;
+
     for (TextEntry.Builder tx : mTextEntries) {
-      graphics().drawString(tx.text(), px, py + tx.yOffset());
+
+      if (tx.text().startsWith("~")) {
+        switch (tx.text().substring(1)) {
+        default:
+          throw notSupported("unknown text:", tx);
+        case "dash": {
+          int y0 = (int) (py + tx.yOffset() - f.getAscent() + (f.getAscent() * tx.heightScale() * 0.5f));
+          graphics().drawLine(x0, y0, x1, y0);
+        }
+          break;
+        }
+      } else
+        graphics().drawString(tx.text(), center.x - tx.renderWidth() / 2, py + tx.yOffset());
     }
     mTextEntries.clear();
   }
