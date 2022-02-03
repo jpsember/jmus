@@ -138,7 +138,7 @@ public final class Util {
   public static final IRect PAGE_FULL = new IRect(PAGE_SIZE);
   public static final IRect PAGE_CONTENT = PAGE_FULL.withInset(PAGE_MARGIN);
 
-  public static final Font FONT_BOLD = new Font("helvetica", Font.BOLD, 18);
+  public static final Font FONT_BOLD = new Font("Helvetica", Font.BOLD, 18);
 
   public static final Paint OUR_PAINT = Paint.newBuilder().font(FONT_BOLD, 1f).color(Color.black).width(1f)
       .build();

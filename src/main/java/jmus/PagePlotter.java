@@ -2,7 +2,12 @@ package jmus;
 
 import static js.base.Tools.*;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -18,6 +23,7 @@ import de.erichseifert.vectorgraphics2d.util.PageSize;
 import js.base.BaseObject;
 import js.file.Files;
 import js.geometry.IRect;
+import js.graphics.ImgUtil;
 
 import static jmus.Util.*;
 
@@ -36,7 +42,7 @@ public final class PagePlotter extends BaseObject {
   }
 
   public void generateOutputFile(File outputFile) {
-    CommandSequence commands = mGraphics.getCommands();
+    CommandSequence commands = ((VectorGraphics2D) mGraphics).getCommands();
 
     Processor processor;
 
@@ -74,29 +80,76 @@ public final class PagePlotter extends BaseObject {
     }
   }
 
-  private VectorGraphics2D mGraphics;
+  private Graphics2D mGraphics;
 
   public void experiment() {
+
+    BufferedImage img = ImgUtil.build(PAGE_SIZE, ImgUtil.PREFERRED_IMAGE_TYPE_COLOR);
+
+    if (alert("rendering to normal graphics")) {
+      mGraphics = img.createGraphics();
+      mGraphics.setColor(Color.white);
+      fill(0, 0, PAGE_SIZE.x, PAGE_SIZE.y);
+    }
 
     Graphics2D g = graphics();
     OUR_PAINT.apply(g);
 
     g.drawString("Gm   Hello", PAGE_SIZE.x * .6f, 100);
 
-    cross(PAGE_CONTENT.midX(), PAGE_CONTENT.midY());
-    if (false) {
-      int w = PAGE_FULL.width;
-      int h = PAGE_FULL.height;
-      cross(0, 0);
-      cross(w, h);
+    if (false)
+      cross(PAGE_CONTENT.midX(), PAGE_CONTENT.midY());
 
-      int m = 50;
-      for (int x = 0; x <= w; x += m) {
-        for (int y = 0; y <= h; y += m) {
-          cross(x, y);
-        }
+    {
+      String[] strs = { "Gm Hello", "E♭ A♭ F♯", "Hippopotamus" };
+
+      FontMetrics f = g.getFontMetrics();
+
+      int lc = strs.length;
+      int h = f.getHeight() * lc - f.getLeading();
+
+      int w = 0;
+      for (String s : strs) {
+        w = Math.max(w, f.stringWidth(s));
+      }
+      IRect b = new IRect(PAGE_CONTENT.midX() - w / 2, PAGE_CONTENT.midY() - h / 2, w, h);
+      rect(b);
+
+      int py = b.y + f.getAscent();
+      for (String s : strs) {
+        graphics().drawString(s, b.x, py);
+        py += f.getHeight();
       }
     }
+
+    if (true) {
+      graphics().drawString("\u05E9\u05DC\u05D5\u05DD \u05E2\u05D5\u05DC\u05DD", 600, 600);
+    } else {
+      String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+      int y = PAGE_CONTENT.y + 20;
+      boolean fs = true;
+      for (String s : fonts) {
+        if (y >= PAGE_CONTENT.endY())
+          break;
+
+        Font f = new Font(s, Font.PLAIN, 18);
+
+        if (fs) {
+          f = new Font(Font.MONOSPACED, Font.PLAIN, 11);
+          fs = false;
+        }
+
+        graphics().setFont(f);
+        FontMetrics m = g.getFontMetrics();
+        graphics().drawString(s + "(E♭ A♭ F♯)", PAGE_CONTENT.x + 20, y + m.getAscent());
+
+        char c[] = { '♭' };
+        graphics().drawChars(c, 0, 1, PAGE_CONTENT.x + 180, y + m.getAscent());
+
+        y += m.getHeight();
+      }
+    }
+
     PAINT_LIGHTER.apply(g);
     if (false) {
       rect(PAGE_FULL);
@@ -110,7 +163,11 @@ public final class PagePlotter extends BaseObject {
       fill(PAGE_SIZE.x - PAGE_MARGIN - radius - pad, PAGE_SIZE.y - PAGE_MARGIN - radius - pad, radius,
           radius);
     }
-    fill(PAGE_CONTENT.midX() - radius / 2, PAGE_CONTENT.midY() - radius / 2, radius, radius);
+    if (false)
+      fill(PAGE_CONTENT.midX() - radius / 2, PAGE_CONTENT.midY() - radius / 2, radius, radius);
+
+    ImgUtil.writeImage(Files.S, img, new File("_SKIP_experiment.png"));
+    halt();
     generateOutputFile(new File("_SKIP_experiment.pdf"));
   }
 
