@@ -1,0 +1,8 @@
+// Represents a musical key or scale that Nashville Notation is to be applied to
+
+fields {
+
+  // 12 chords, representing the 7 white keys of the Nashville numbers, with 5 black keys
+
+  *string keys;
+}

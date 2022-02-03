@@ -41,6 +41,7 @@ import jmus.gen.MainConfig;
 import jmus.gen.MusicLine;
 import jmus.gen.MusicSection;
 import jmus.gen.OptType;
+import jmus.gen.Scale;
 import jmus.gen.Song;
 import js.app.AppOper;
 import js.app.CmdLineArgs;
@@ -114,8 +115,11 @@ public class ExampleOper extends AppOper {
     flushMusicLine();
     flushMusicSection();
 
-    String songText = renderSong(song());
+    Scale scale = Util.scaleMap().scales().get("b-flat");
+    
+    String songText = renderSong(song(), scale);
     System.out.println(songText);
+
   }
 
   private Song.Builder song() {
@@ -227,7 +231,7 @@ public class ExampleOper extends AppOper {
 
   private static final int CHORD_COLUMN_SIZE = 5;
 
-  private String renderSong(Song song) {
+  private String renderSong(Song song, Scale scale) {
     StringBuilder lineBuilder = new StringBuilder();
 
     for (MusicSection section : song.sections()) {
@@ -238,7 +242,7 @@ public class ExampleOper extends AppOper {
         for (Chord chord : line.chords()) {
           chordNum++;
           tab(lineBuilder, cursor + chordNum * CHORD_COLUMN_SIZE);
-          String chordStr = renderChord(chord, null).toString();
+          String chordStr = renderChord(chord, scale, null).toString();
           lineBuilder.append(chordStr);
         }
         lineBuilder.append("\n");

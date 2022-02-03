@@ -1,12 +1,20 @@
 package jmus;
 
+import static js.base.Tools.*;
+
 import jmus.gen.Chord;
+import jmus.gen.Scale;
+import jmus.gen.ScaleMap;
+import js.file.Files;
+import js.json.JSMap;
 
 public final class Util {
 
-  public static StringBuilder renderChord(Chord chord, StringBuilder sb) {
+  public static StringBuilder renderChord(Chord chord, Scale scale, StringBuilder sb) {
     if (sb == null)
       sb = new StringBuilder();
+
+    todo("need to do something different if rendering as scale");
 
     switch (chord.accidental()) {
     default:
@@ -21,7 +29,12 @@ public final class Util {
 
     // Useful reference for unicode:  https://en.wikipedia.org/wiki/Unicode_subscripts_and_superscripts
 
-    sb.append(chord.number());
+    if (scale != null) {
+      sb.append(scale.keys().get(chord.number() - 1));
+    } else {
+      sb.append(chord.number());
+    }
+
     switch (chord.type()) {
     default:
       break;
@@ -60,5 +73,15 @@ public final class Util {
     }
     return sb;
   }
+
+  public static ScaleMap scaleMap() {
+    if (sScaleMap == null) {
+      String content = Files.readString(Util.class, "scales.json");
+      sScaleMap = Files.parseAbstractDataOpt(ScaleMap.DEFAULT_INSTANCE, new JSMap(content));
+    }
+    return sScaleMap;
+  }
+
+  private static ScaleMap sScaleMap;
 
 }
