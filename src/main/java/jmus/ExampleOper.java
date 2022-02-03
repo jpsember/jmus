@@ -31,6 +31,9 @@ import java.io.File;
 import js.parsing.DFA;
 import js.parsing.Scanner;
 import js.parsing.Token;
+
+import static jmus.Util.*;
+
 import jmus.gen.Accidental;
 import jmus.gen.Chord;
 import jmus.gen.ChordType;
@@ -111,7 +114,8 @@ public class ExampleOper extends AppOper {
     flushMusicLine();
     flushMusicSection();
 
-    pr(song());
+    String songText = renderSong(song());
+    System.out.println(songText);
   }
 
   private Song.Builder song() {
@@ -219,6 +223,29 @@ public class ExampleOper extends AppOper {
     } catch (Throwable th) {
       throw t.fail("Trouble parsing chord");
     }
+  }
+
+  private static final int CHORD_COLUMN_SIZE = 5;
+
+  private String renderSong(Song song) {
+    StringBuilder lineBuilder = new StringBuilder();
+
+    for (MusicSection section : song.sections()) {
+      lineBuilder.append("\n");
+      for (MusicLine line : section.lines()) {
+        int cursor = lineBuilder.length();
+        int chordNum = -1;
+        for (Chord chord : line.chords()) {
+          chordNum++;
+          tab(lineBuilder, cursor + chordNum * CHORD_COLUMN_SIZE);
+          String chordStr = renderChord(chord, null).toString();
+          lineBuilder.append(chordStr);
+        }
+        lineBuilder.append("\n");
+      }
+    }
+
+    return lineBuilder.toString();
   }
 
   private DFA mDFA;
