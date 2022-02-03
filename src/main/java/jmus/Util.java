@@ -133,8 +133,14 @@ public final class Util {
   // Rendering
   // ------------------------------------------------------------------
 
-  public static final IPoint PAGE_SIZE = new IPoint(850, 1100);
-  public static final int PAGE_MARGIN = 25;
+  public static final int PIXELS_PER_INCH = 100;
+
+  // We want the physical number of pixels to be larger than our logical page size (100 pixels per inch),
+  // ideally to match whatever printer we are using.
+  public static final int DOTS_PER_INCH = Math.round(300 / (float) PIXELS_PER_INCH);
+
+  public static final IPoint PAGE_SIZE = new IPoint(PIXELS_PER_INCH * 8.5f, PIXELS_PER_INCH * 11f);
+  public static final int PAGE_MARGIN = PIXELS_PER_INCH / 4;
   public static final IRect PAGE_FULL = new IRect(PAGE_SIZE);
   public static final IRect PAGE_CONTENT = PAGE_FULL.withInset(PAGE_MARGIN);
 

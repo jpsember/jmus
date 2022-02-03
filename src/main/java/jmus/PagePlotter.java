@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -23,6 +24,7 @@ import de.erichseifert.vectorgraphics2d.util.PageSize;
 import js.base.BaseObject;
 import js.file.Files;
 import js.geometry.IRect;
+import js.geometry.Matrix;
 import js.graphics.ImgUtil;
 
 import static jmus.Util.*;
@@ -84,11 +86,15 @@ public final class PagePlotter extends BaseObject {
 
   public void experiment() {
 
-    BufferedImage img = ImgUtil.build(PAGE_SIZE, ImgUtil.PREFERRED_IMAGE_TYPE_COLOR);
+    BufferedImage img = null;
 
     if (alert("rendering to normal graphics")) {
+      img = ImgUtil.build(PAGE_SIZE.scaledBy(DOTS_PER_INCH), ImgUtil.PREFERRED_IMAGE_TYPE_COLOR);
       mGraphics = img.createGraphics();
       mGraphics.setColor(Color.white);
+      graphics().setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+          RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+      graphics().setTransform(Matrix.getScale(DOTS_PER_INCH).toAffineTransform());
       fill(0, 0, PAGE_SIZE.x, PAGE_SIZE.y);
     }
 
