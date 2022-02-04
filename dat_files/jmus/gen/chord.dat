@@ -9,4 +9,6 @@ fields {
   OptType opt_type;
 
   int number;
+
+  Chord slash_chord;
 }

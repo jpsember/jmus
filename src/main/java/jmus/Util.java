@@ -10,8 +10,11 @@ import java.awt.GraphicsEnvironment;
 import java.util.Collection;
 
 import jmus.gen.Chord;
+import jmus.gen.MusicLine;
+import jmus.gen.MusicSection;
 import jmus.gen.Scale;
 import jmus.gen.ScaleMap;
+import jmus.gen.Song;
 import jmus.gen.TextEntry;
 import js.file.Files;
 import js.geometry.IPoint;
@@ -110,6 +113,10 @@ public final class Util {
     return sb;
   }
 
+  public static Scale scale(String name) {
+    return scaleMap().scales().get(name);
+  }
+
   public static ScaleMap scaleMap() {
     if (sScaleMap == null) {
       String content = Files.readString(Util.class, "scales.json");
@@ -132,7 +139,7 @@ public final class Util {
 
   private static DFA mDFA;
 
-  public static final int T_WS = 0, T_CR = 1, T_STRING = 2, T_CHORD = 3;
+  public static final int T_WS = 0, T_CR = 1, T_STRING = 2, T_CHORD = 3, T_FWD_SLASH = 4;
 
   // ------------------------------------------------------------------
   // Rendering
@@ -241,18 +248,42 @@ public final class Util {
     }
     pr("font offset:", fontOffset);
   }
-  public static void rect(Graphics2D g,IRect r) {
+
+  public static void rect(Graphics2D g, IRect r) {
     g.drawRect(r.x, r.y, r.width, r.height);
   }
 
-  public static void fill(Graphics2D g,int x, int y, int w, int h) {
+  public static void fill(Graphics2D g, int x, int y, int w, int h) {
     g.fillRect(x, y, w, h);
   }
 
-  public static void cross(Graphics2D g,int x, int y) {
+  public static void cross(Graphics2D g, int x, int y) {
     int r = 4;
     g.drawLine(x - r, y, x + r, y);
     g.drawLine(x, y - r, x, y + 4);
+  }
+
+  public static String renderSongAsText(Song song, Scale scale) {
+    final int CHORD_COLUMN_SIZE = 5;
+
+    StringBuilder lineBuilder = new StringBuilder();
+
+    for (MusicSection section : song.sections()) {
+      lineBuilder.append("\n");
+      for (MusicLine line : section.lines()) {
+        int cursor = lineBuilder.length();
+        int chordNum = -1;
+        for (Chord chord : line.chords()) {
+          chordNum++;
+          tab(lineBuilder, cursor + chordNum * CHORD_COLUMN_SIZE);
+          String chordStr = renderChord(chord, scale, null).toString();
+          lineBuilder.append(chordStr);
+        }
+        lineBuilder.append("\n");
+      }
+    }
+
+    return lineBuilder.toString();
   }
 
 }
