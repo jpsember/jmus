@@ -81,19 +81,23 @@ public class SongOper extends AppOper {
   @Override
   public void perform() {
 
-    if (false) {
-      new PagePlotter().experiment();
-      return;
-    }
-
     if (Files.empty(mSourceFile))
       setError("Please specify a source file");
 
     Song song = new SongParser(mSourceFile).parse();
 
     Scale scale = scale("e-flat");
-    String songText = renderSongAsText(song, scale);
-    System.out.println(songText);
+
+    if (true) {
+
+      PagePlotter p = new PagePlotter();
+      p.render(song, scale);
+      p.generateOutputFile(new File("_SKIP_experiment.png"));
+    } else {
+
+      String songText = renderSongAsText(song, scale);
+      System.out.println(songText);
+    }
   }
 
   private File mSourceFile;

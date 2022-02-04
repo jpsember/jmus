@@ -9,6 +9,11 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.List;
 
+import jmus.gen.Chord;
+import jmus.gen.MusicLine;
+import jmus.gen.MusicSection;
+import jmus.gen.Scale;
+import jmus.gen.Song;
 import jmus.gen.TextEntry;
 import js.base.BaseObject;
 import js.file.Files;
@@ -47,6 +52,60 @@ public final class PagePlotter extends BaseObject {
     ImgUtil.writeImage(Files.S, mImage, outputFile);
   }
 
+  public void render(Song song, Scale scale) {
+
+    int spacingBetweenLines = 55;
+    int spacingBetweenSections = 30;
+    int spacingBetweenChords = 30;
+
+    Graphics2D g = graphics();
+    PAINT_NORMAL.apply(g);
+
+    int y = PAGE_CONTENT.y;
+
+    boolean indentRequired = false;
+    for (MusicSection section : song.sections()) {
+      if (indentRequired) {
+        todo("figure out blank line spacing");
+        y += spacingBetweenSections;
+      }
+      indentRequired = true;
+
+      for (MusicLine line : section.lines()) {
+
+        int chordNum = -1;
+        for (Chord chord : line.chords()) {
+          chordNum++;
+
+          todo("figure out chord spacing");
+          int x = PAGE_CONTENT.x + chordNum * spacingBetweenChords;
+
+          plotChord(chord, scale, new IPoint(x, y));
+        }
+
+        todo("figure out spacing between lines");
+        y += spacingBetweenLines;
+      }
+
+      if (false && alert("stopping after single section"))
+        break;
+    }
+
+  }
+
+  private void plotChord(Chord chord, Scale scale, IPoint location) {
+    mTextEntries.clear();
+
+    tx().text(renderChord(chord, scale, null, null).toString());
+    if (chord.slashChord() != null) {
+      tx() .text("~dash");
+      tx().text(renderChord(chord.slashChord(), scale, null, null).toString());
+    }
+
+    renderText(graphics(), mTextEntries, location);
+    mTextEntries.clear();
+  }
+
   public void experiment() {
 
     Graphics2D g = graphics();
@@ -59,7 +118,7 @@ public final class PagePlotter extends BaseObject {
 
     tx().text("Gm Hello4");
     tx().text("E♭ A♭ F♯");
-    tx().heightScale(0.5f).text("~dash");
+    tx() .text("~dash");
     tx().text("Hippopotamus");
 
     renderText(g, mTextEntries, new IPoint(600, 200));
@@ -68,7 +127,6 @@ public final class PagePlotter extends BaseObject {
     generateOutputFile(new File("_SKIP_experiment.png"));
   }
 
-  
   public TextEntry.Builder tx() {
     TextEntry.Builder b = TextEntry.newBuilder();
     mTextEntries.add(b);

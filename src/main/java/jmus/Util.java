@@ -32,18 +32,10 @@ public final class Util {
   private static final int[] numberToKeyIndexFlat = { 11, 1, 3, 4, 6, 8, 10 };
   private static final int[] numberToKeyIndexSharp = { 1, 3, 4, 6, 8, 10, 0 };
 
-  public static StringBuilder renderChord(Chord chord, Scale scale, StringBuilder sb) {
+  public static StringBuilder renderChord(Chord chord, Scale scale, StringBuilder sb,
+      Chord slashChordOrNull) {
     if (sb == null)
       sb = new StringBuilder();
-    auxRenderChord(chord, scale, sb);
-    if (chord.slashChord() != null) {
-      sb.append('/');
-      auxRenderChord(chord.slashChord(), scale, sb);
-    }
-    return sb;
-  }
-
-  public static void auxRenderChord(Chord chord, Scale scale, StringBuilder sb) {
 
     if (scale != null) {
 
@@ -119,6 +111,12 @@ public final class Util {
       sb.append('⁹');
       break;
     }
+
+    if (slashChordOrNull != null) {
+      sb.append('/');
+      renderChord(slashChordOrNull, scale, sb, null);
+    }
+    return sb;
   }
 
   public static Scale scale(String name) {
@@ -186,28 +184,39 @@ public final class Util {
       .build();
   public static final Paint PAINT_LIGHTER = PAINT_NORMAL.toBuilder().color(64, 64, 64).build();
 
+  private static final int DASH_HEIGHT = 3;
+
   public static void renderText(Graphics2D g, Collection<TextEntry.Builder> textEntries, IPoint center) {
+
+    final boolean DEBUG = false;
     FontMetrics f = g.getFontMetrics();
 
-    int y = 0;
     int maxWidth = 0;
-    for (TextEntry.Builder tx : textEntries) {
-      tx.yOffset(y);
+    int heightTotal = 0;
+    {
+      int y = 0;
+      for (TextEntry.Builder tx : textEntries) {
 
-      if (tx.text().startsWith("~")) {
-      } else
-        tx.renderWidth(f.stringWidth(tx.text()));
+        int rowHeight = f.getHeight();
+        tx.yOffset(y);
 
-      maxWidth = Math.max(maxWidth, tx.renderWidth());
-      // apparently this cast is not required, as += performs type coercion (which is strange)
-      // https://stackoverflow.com/questions/8272635
-      y += (int) (f.getHeight() * tx.heightScale());
+        if (tx.text().startsWith("~")) {
+          todo("figure out how to parameterize this w.r.t. fonts etc");
+          rowHeight = DASH_HEIGHT;
+        } else
+          tx.renderWidth(f.stringWidth(tx.text()));
+
+        maxWidth = Math.max(maxWidth, tx.renderWidth());
+        y += rowHeight;
+        heightTotal = y - f.getLeading();
+      }
     }
-    int heightTotal = y - f.getLeading();
-
     int py = center.y - heightTotal / 2;
     int x0 = center.x - maxWidth / 2;
     int x1 = center.x + maxWidth / 2;
+
+    if (DEBUG)
+      rect(g, x0, py, maxWidth, heightTotal);
 
     for (TextEntry tx : textEntries) {
       if (tx.text().startsWith("~")) {
@@ -215,13 +224,21 @@ public final class Util {
         default:
           throw notSupported("unknown text:", tx);
         case "dash": {
-          int y0 = (int) (py + tx.yOffset() - f.getAscent() + (f.getAscent() * tx.heightScale() * 0.5f));
-          g.drawLine(x0, y0, x1, y0);
+          todo("clarify calculations here");
+          int y0 = py + f.getAscent() + DASH_HEIGHT + 2;
+          line(g, x0, y0, x1, y0);
         }
           break;
         }
-      } else
-        g.drawString(tx.text(), center.x - tx.renderWidth() / 2, py + tx.yOffset());
+      } else {
+        int y = py + tx.yOffset();
+        g.drawString(tx.text(), center.x - tx.renderWidth() / 2, y + f.getAscent());
+
+        if (DEBUG) {
+          line(g, x0, y, x0 + maxWidth, y + f.getHeight());
+          line(g, x0, y + f.getHeight(), x0 + maxWidth, y);
+        }
+      }
     }
   }
 
@@ -261,14 +278,22 @@ public final class Util {
     g.drawRect(r.x, r.y, r.width, r.height);
   }
 
+  public static void rect(Graphics2D g, float x, float y, float width, float height) {
+    g.drawRect((int) x, (int) y, (int) width, (int) height);
+  }
+
+  public static void line(Graphics2D g, int x0, int y0, int x1, int y1) {
+    g.drawLine(x0, y0, x1, y1);
+  }
+
   public static void fill(Graphics2D g, int x, int y, int w, int h) {
     g.fillRect(x, y, w, h);
   }
 
   public static void cross(Graphics2D g, int x, int y) {
     int r = 4;
-    g.drawLine(x - r, y, x + r, y);
-    g.drawLine(x, y - r, x, y + 4);
+    line(g, x - r, y, x + r, y);
+    line(g, x, y - r, x, y + 4);
   }
 
   public static String renderSongAsText(Song song, Scale scale) {
@@ -284,8 +309,7 @@ public final class Util {
         for (Chord chord : line.chords()) {
           chordNum++;
           tab(lineBuilder, cursor + chordNum * CHORD_COLUMN_SIZE);
-          String chordStr = renderChord(chord, scale, null).toString();
-          lineBuilder.append(chordStr);
+          renderChord(chord, scale, lineBuilder, chord.slashChord());
         }
         lineBuilder.append("\n");
       }
