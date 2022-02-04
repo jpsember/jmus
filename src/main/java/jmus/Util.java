@@ -4,10 +4,15 @@ import static js.base.Tools.*;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
+import java.util.Collection;
 
 import jmus.gen.Chord;
 import jmus.gen.Scale;
 import jmus.gen.ScaleMap;
+import jmus.gen.TextEntry;
 import js.file.Files;
 import js.geometry.IPoint;
 import js.geometry.IRect;
@@ -160,10 +165,94 @@ public final class Util {
   // (A custom drawString that shifts some chars over...)
 
   public static final String FONT_NAME = "Dialog";
-  
+
   public static final Font FONT_BOLD = new Font(FONT_NAME, Font.BOLD, 18);
   public static final Paint PAINT_NORMAL = Paint.newBuilder().font(FONT_BOLD, 1f).color(Color.black).width(1f)
       .build();
   public static final Paint PAINT_LIGHTER = PAINT_NORMAL.toBuilder().color(64, 64, 64).build();
+
+  public static void renderText(Graphics2D g, Collection<TextEntry.Builder> textEntries, IPoint center) {
+    FontMetrics f = g.getFontMetrics();
+
+    int y = 0;
+    int maxWidth = 0;
+    for (TextEntry.Builder tx : textEntries) {
+      tx.yOffset(y);
+
+      if (tx.text().startsWith("~")) {
+      } else
+        tx.renderWidth(f.stringWidth(tx.text()));
+
+      maxWidth = Math.max(maxWidth, tx.renderWidth());
+      // apparently this cast is not required, as += performs type coercion (which is strange)
+      // https://stackoverflow.com/questions/8272635
+      y += (int) (f.getHeight() * tx.heightScale());
+    }
+    int heightTotal = y - f.getLeading();
+
+    int py = center.y - heightTotal / 2;
+    int x0 = center.x - maxWidth / 2;
+    int x1 = center.x + maxWidth / 2;
+
+    for (TextEntry tx : textEntries) {
+      if (tx.text().startsWith("~")) {
+        switch (tx.text().substring(1)) {
+        default:
+          throw notSupported("unknown text:", tx);
+        case "dash": {
+          int y0 = (int) (py + tx.yOffset() - f.getAscent() + (f.getAscent() * tx.heightScale() * 0.5f));
+          g.drawLine(x0, y0, x1, y0);
+        }
+          break;
+        }
+      } else
+        g.drawString(tx.text(), center.x - tx.renderWidth() / 2, py + tx.yOffset());
+    }
+  }
+
+  // fontOffset 0, 86, 165
+  //
+  public static void renderFonts(Graphics2D g, int fontOffset) {
+    String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+    int column = -1;
+    int y = -1;
+    int x = -1;
+
+    while (true) {
+      if (fontOffset >= fonts.length)
+        break;
+      String s = fonts[fontOffset];
+      fontOffset++;
+      if (y < 0) {
+        column++;
+        if (column >= 2)
+          break;
+        y = PAGE_CONTENT.y + 20;
+        x = (int) (PAGE_CONTENT.x + 10 + column * PIXELS_PER_INCH * 4f);
+      }
+
+      Font f = new Font(s, Font.BOLD, 18);
+      g.setFont(f);
+      FontMetrics m = g.getFontMetrics();
+      g.drawString(s + "(E♭ A♭ F♯)", x + 20, y + m.getAscent());
+      y += m.getHeight();
+      if (y + m.getAscent() >= PAGE_CONTENT.endY())
+        y = -1;
+    }
+    pr("font offset:", fontOffset);
+  }
+  public static void rect(Graphics2D g,IRect r) {
+    g.drawRect(r.x, r.y, r.width, r.height);
+  }
+
+  public static void fill(Graphics2D g,int x, int y, int w, int h) {
+    g.fillRect(x, y, w, h);
+  }
+
+  public static void cross(Graphics2D g,int x, int y) {
+    int r = 4;
+    g.drawLine(x - r, y, x + r, y);
+    g.drawLine(x, y - r, x, y + 4);
+  }
 
 }
