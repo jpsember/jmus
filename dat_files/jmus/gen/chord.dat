@@ -10,5 +10,5 @@ fields {
 
   int number;
 
-  Chord slash_chord;
+  ?Chord slash_chord;
 }

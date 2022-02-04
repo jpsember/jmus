@@ -35,6 +35,15 @@ public final class Util {
   public static StringBuilder renderChord(Chord chord, Scale scale, StringBuilder sb) {
     if (sb == null)
       sb = new StringBuilder();
+    auxRenderChord(chord, scale, sb);
+    if (chord.slashChord() != null) {
+      sb.append('/');
+      auxRenderChord(chord.slashChord(), scale, sb);
+    }
+    return sb;
+  }
+
+  public static void auxRenderChord(Chord chord, Scale scale, StringBuilder sb) {
 
     if (scale != null) {
 
@@ -110,7 +119,6 @@ public final class Util {
       sb.append('⁹');
       break;
     }
-    return sb;
   }
 
   public static Scale scale(String name) {
