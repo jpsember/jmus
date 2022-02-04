@@ -81,12 +81,15 @@ public class SongOper extends AppOper {
   @Override
   public void perform() {
 
-    if (Files.empty(mSourceFile))
-      setError("Please specify a source file");
+    if (alert("using default"))
+      mSourceFile = new File("bojangles.txt");
 
+    if (Files.empty(mSourceFile)) {
+      setError("Please specify a source file");
+    }
     Song song = new SongParser(mSourceFile).parse();
 
-    Scale scale = scale("e-flat");
+    Scale scale = scale("g");
 
     if (true) {
 

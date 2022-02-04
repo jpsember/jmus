@@ -2,5 +2,4 @@ fields {
   string text;
   int render_width;
   int y_offset;
-  float height_scale = 1;
 }

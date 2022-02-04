@@ -56,7 +56,7 @@ public final class PagePlotter extends BaseObject {
 
     int spacingBetweenLines = 55;
     int spacingBetweenSections = 30;
-    int spacingBetweenChords = 30;
+    int spacingBetweenChords = 60;
 
     Graphics2D g = graphics();
     PAINT_NORMAL.apply(g);
