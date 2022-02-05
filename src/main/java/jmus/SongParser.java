@@ -30,7 +30,6 @@ public class SongParser extends BaseObject {
 
     mScanner = new Scanner(dfa(), Files.readString(mSourceFile));
     mScanner.setSourceDescription(mSourceFile.getName());
-    //mScanner.alertVerbose();
 
     while (mScanner.hasNext()) {
 
@@ -39,6 +38,16 @@ public class SongParser extends BaseObject {
         flushMusicLine();
         if (crs == 2)
           flushMusicSection();
+        continue;
+      }
+
+      if (peekIf(T_TITLE) || peekIf(T_SUBTITLE) || peekIf(T_TEXT) || peekIf(T_SMALLTEXT)) {
+        flushMusicSection();
+        Token t = mScanner.read();
+        String s = mScanner.read(T_STRING).text();
+        s = parseStringText(s);
+        song().sections().add(MusicSection.newBuilder()//
+            .type(t.id()).text(s).build());
         continue;
       }
 
@@ -63,6 +72,11 @@ public class SongParser extends BaseObject {
     return song().build();
   }
 
+  private String parseStringText(String s) {
+    todo("parse escape chars etc");
+    return s.substring(1, s.length() - 1);
+  }
+
   private Chord.Builder readScalarChord() {
 
     Chord.Builder c = parseChord();
@@ -78,6 +92,10 @@ public class SongParser extends BaseObject {
     return null != mScanner.readIf(tokenId);
   }
 
+  private boolean peekIf(int tokenId) {
+    return mScanner.hasNext() && mScanner.peek().id(tokenId);
+  }
+
   private Song.Builder song() {
     if (mSongBuilder == null) {
       mSongBuilder = Song.newBuilder();
@@ -86,6 +104,7 @@ public class SongParser extends BaseObject {
   }
 
   private void flushMusicSection() {
+    flushMusicLine();
     if (!musicSection().lines().isEmpty()) {
       song().sections().add(musicSection().build());
       mMusicSectionBuilder = null;

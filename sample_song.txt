@@ -1,8 +1,17 @@
 
+title "Experiment"
+subtitle "Jeff"
+
+text "Intro"
 (1 ..)        (5 6- 5/7)  5/7 (2..)
  (6- 6- 6-) 2    2  2
 
-
+text "Verse (repeat 2x)"
 (1 ..)        (5 6- 5/7)  5/7 (2..)
  (6- 6- 6-) 2    2  2
 
+text "Chorus"
+(1 ..)        (5 6- 5/7)  5/7 (2..)
+ (6- 6- 6-) 2    2  2
+
+smalltext "Here are some tips"

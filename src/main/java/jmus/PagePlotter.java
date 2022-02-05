@@ -72,6 +72,18 @@ public final class PagePlotter extends BaseObject {
       sectionNumber++;
       if (sectionNumber != 0)
         y += style.spacingBetweenSections;
+      todo("special spacing for text sections");
+
+      if (section.type() != 0) {
+
+        plotText(section.type(), section.text(), style, new IPoint(PAGE_CONTENT.x, y));
+
+        todo("figure out text spacing");
+        int textHeight = style.mChordHeight + 1 * style.barPadY;
+
+        y += textHeight;
+        continue;
+      }
 
       List<List<MusicLine>> barLists = arrayList();
       int[] maxChordsPerBar = new int[50];
@@ -141,6 +153,33 @@ public final class PagePlotter extends BaseObject {
       if (false && alert("stopping after single section"))
         break;
     }
+  }
+
+  private void plotText(int type, String text, Style style, IPoint location) {
+    Graphics2D g = graphics();
+    Paint pt;
+    switch (type) {
+    default:
+      throw notSupported("text type", type);
+    case T_TITLE:
+      pt = style.paintTitle;
+      break;
+    case T_SUBTITLE:
+      pt = style.paintSubtitle;
+      break;
+    case T_TEXT:
+      pt = style.paintText;
+      break;
+    case T_SMALLTEXT:
+      pt = style.paintSmallText;
+      break;
+    }
+
+    pt.apply(graphics());
+    FontMetrics f = g.getFontMetrics();
+
+    int y = location.y + f.getAscent();
+    g.drawString(text, location.x, y);
   }
 
   private List<MusicLine> extractChordsForBars(MusicLine line) {
@@ -254,9 +293,14 @@ public final class PagePlotter extends BaseObject {
     final int barPadX;
     final int chordPadX;
     final int spacingBetweenSections;
+    final Paint paintTitle;
+    final Paint paintSubtitle;
+    final Paint paintText;
+    final Paint paintSmallText;
 
     Style(Paint chord, Paint chordSmall, Paint barFrame, int meanChordWidth, int chordHeight, int dashHeight,
-        int barPadX, int barPadY, int chordPadX, int spacingBetweenSections) {
+        int barPadX, int barPadY, int chordPadX, int spacingBetweenSections, Paint title, Paint subtitle,
+        Paint text, Paint smallText) {
       mPaintChord = chord;
       mPaintChordSmall = chordSmall;
       mPaintBarFrame = barFrame;
@@ -267,6 +311,10 @@ public final class PagePlotter extends BaseObject {
       this.barPadY = barPadY;
       this.chordPadX = chordPadX;
       this.spacingBetweenSections = spacingBetweenSections;
+      paintTitle = title;
+      paintSubtitle = subtitle;
+      paintText = text;
+      paintSmallText = smallText;
     }
   }
 
@@ -278,14 +326,20 @@ public final class PagePlotter extends BaseObject {
     final Paint ptChordSmall = ptChord.toBuilder().font(FONT_PLAIN, 1f).build();
     final Paint ptFrame = PAINT_NORMAL.toBuilder().color(192, 192, 192).width(3).build();
 
+    final Paint ptTitle = PAINT_NORMAL.toBuilder().font(FONT_BOLD, 2.3f).build();
+    final Paint ptSubtitle = ptTitle.toBuilder().font(FONT_BOLD, 1.5f).build();
+    final Paint ptText = PAINT_NORMAL.toBuilder().font(FONT_PLAIN, 0.7f).build();
+    final Paint ptSmallText = ptText.toBuilder().font(FONT_PLAIN, 0.5f).build();
+
     if (sStyles == null) {
       sStyles = arrayList();
 
-      sStyles.add(new Style(ptChord, ptChordSmall, ptFrame, 35, 48, 3, 15, 10, 12, 34));
+      sStyles.add(new Style(ptChord, ptChordSmall, ptFrame, 35, 48, 3, 15, 10, 12, 34, ptTitle, ptSubtitle,
+          ptText, ptSmallText));
 
       sStyles.add(new Style(ptChord.toBuilder().font(FONT_PLAIN, 1.2f).build(),
           ptChordSmall.toBuilder().font(FONT_PLAIN, 0.7f).build(), ptFrame.toBuilder().width(2).build(), 24,
-          32, 2, 10, 7, 9, 24));
+          32, 2, 10, 7, 9, 24, ptTitle, ptSubtitle, ptText, ptSmallText));
 
     }
     return sStyles.get(index);

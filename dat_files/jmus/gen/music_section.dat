@@ -1,3 +1,5 @@
 fields {
+  int type;
+  string text;
   *MusicLine lines;
 }

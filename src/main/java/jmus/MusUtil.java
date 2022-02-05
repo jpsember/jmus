@@ -184,7 +184,8 @@ public final class MusUtil {
 
   public static final String FONT_NAME = "Dialog";
   public static final Font FONT_PLAIN = new Font(FONT_NAME, Font.PLAIN, 18);
-  public static final Paint PAINT_NORMAL = Paint.newBuilder().font(FONT_PLAIN, 1f).color(Color.black)
+  public static final Font FONT_BOLD = new Font(FONT_NAME, Font.BOLD, 18);
+   public static final Paint PAINT_NORMAL = Paint.newBuilder().font(FONT_PLAIN, 1f).color(Color.black)
       .width(1f).build();
 
   // fontOffset 0, 86, 165
