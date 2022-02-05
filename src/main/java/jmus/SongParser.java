@@ -30,7 +30,7 @@ public class SongParser extends BaseObject {
 
     mScanner = new Scanner(dfa(), Files.readString(mSourceFile));
     mScanner.setSourceDescription(mSourceFile.getName());
-    mScanner.alertVerbose();
+    //mScanner.alertVerbose();
 
     while (mScanner.hasNext()) {
 

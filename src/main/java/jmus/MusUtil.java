@@ -7,7 +7,6 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
-import java.util.Collection;
 
 import jmus.gen.Chord;
 import jmus.gen.ChordType;
@@ -16,7 +15,6 @@ import jmus.gen.MusicSection;
 import jmus.gen.Scale;
 import jmus.gen.ScaleMap;
 import jmus.gen.Song;
-import jmus.gen.TextEntry;
 import js.file.Files;
 import js.geometry.IPoint;
 import js.geometry.IRect;
@@ -186,81 +184,10 @@ public final class MusUtil {
   // (A custom drawString that shifts some chars over...)
 
   public static final String FONT_NAME = "Dialog";
-
   public static final Font FONT_PLAIN = new Font(FONT_NAME, Font.PLAIN, 18);
-
-  public static final Font FONT_BOLD = new Font(FONT_NAME, Font.BOLD, 18);
-  public static final Paint PAINT_NORMAL = Paint.newBuilder().font(FONT_BOLD, 1f).color(Color.black).width(1f)
-      .build();
-
-  public static final int MEAN_CHORD_WIDTH_PIXELS = 35;
-
-  public static final Paint CHORD_PAINT_NORMAL = Paint.newBuilder().font(FONT_PLAIN, 1.8f)
-      .color(Color.black).width(1).build();
-  public static final Paint CHORD_PAINT_SMALL = CHORD_PAINT_NORMAL.toBuilder().font(FONT_PLAIN, 1f).width(1);
-
-  private static final int DASH_HEIGHT = 3;
-
-  public static int renderText(Graphics2D g, Collection<TextEntry.Builder> textEntries, IPoint topLeft) {
-
-    todo("why does setting stroke width(1) have different effect than default when rendering lines with CHORD_PAINT_SMALL?");
-    
-    final boolean DEBUG = false;
-    FontMetrics f = g.getFontMetrics();
-
-    int maxWidth = 0;
-    int heightTotal = 0;
-    {
-      int y = 0;
-      for (TextEntry.Builder tx : textEntries) {
-
-        int rowHeight = f.getHeight();
-        tx.yOffset(y);
-
-        if (tx.text().startsWith("~")) {
-          todo("figure out how to parameterize this w.r.t. fonts etc");
-          rowHeight = DASH_HEIGHT;
-        } else
-          tx.renderWidth(f.stringWidth(tx.text()));
-
-        maxWidth = Math.max(maxWidth, tx.renderWidth());
-        y += rowHeight;
-        heightTotal = y - f.getLeading();
-      }
-    }
-
-    int py = topLeft.y;
-    int x0 = topLeft.x;
-    int x1 = topLeft.x + maxWidth;
-
-    if (DEBUG)
-      rect(g, x0, py, maxWidth, heightTotal);
-
-    for (TextEntry tx : textEntries) {
-      if (tx.text().startsWith("~")) {
-        switch (tx.text().substring(1)) {
-        default:
-          throw notSupported("unknown text:", tx);
-        case "dash": {
-          todo("clarify calculations here");
-          int y0 = py + f.getAscent() + DASH_HEIGHT + 2;
-          line(g, x0, y0, x1, y0);
-        }
-          break;
-        }
-      } else {
-        int y = py + tx.yOffset();
-        g.drawString(tx.text(), x0, y + f.getAscent());
-
-        if (DEBUG) {
-          line(g, x0, y, x0 + maxWidth, y + f.getHeight());
-          line(g, x0, y + f.getHeight(), x0 + maxWidth, y);
-        }
-      }
-    }
-    return maxWidth;
-  }
-
+  public static final Paint PAINT_NORMAL = Paint.newBuilder().font(FONT_PLAIN, 1f).color(Color.black)
+      .width(1f).build();
+ 
   // fontOffset 0, 86, 165
   //
   public static void renderFonts(Graphics2D g, int fontOffset) {

@@ -3,10 +3,12 @@ package jmus;
 import static js.base.Tools.*;
 
 import java.awt.Color;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 import jmus.gen.Chord;
@@ -53,7 +55,11 @@ public final class PagePlotter extends BaseObject {
     ImgUtil.writeImage(Files.S, mImage, outputFile);
   }
 
-  private static final Paint PAINT_LIGHTER = PAINT_NORMAL.toBuilder().color(192, 192, 192).width(3).build();
+  private static final Paint PAINT_CHORD = PAINT_NORMAL.toBuilder().font(FONT_PLAIN, 1.8f).build();
+  private static final Paint PAINT_CHORD_SMALL = PAINT_CHORD.toBuilder().font(FONT_PLAIN, 1f).build();
+  private static final Paint PAINT_BAR_FRAME = PAINT_NORMAL.toBuilder().color(192, 192, 192).width(3).build();
+  private static final int MEAN_CHORD_WIDTH_PIXELS = 35;
+  private static final int DASH_HEIGHT = 3;
 
   public void render(Song song, Scale scale) {
 
@@ -107,7 +113,7 @@ public final class PagePlotter extends BaseObject {
           barNum++;
 
           int barWidth = (MEAN_CHORD_WIDTH_PIXELS + chordPadX) * maxChordsPerBar[barNum] + chordPadX;
-          PAINT_LIGHTER.apply(graphics());
+          PAINT_BAR_FRAME.apply(graphics());
           rect(graphics(), barX, y, barWidth, barHeight);
 
           int cx = barX + barPadX;
@@ -116,11 +122,11 @@ public final class PagePlotter extends BaseObject {
           // Loop over each chord in this bar
 
           for (Chord chord : bars.chords()) {
-            Paint chordPaint = CHORD_PAINT_NORMAL;
+            Paint chordPaint = PAINT_CHORD;
             int yAdjust = 0;
 
             if (chord.slashChord() != null) {
-              chordPaint = CHORD_PAINT_SMALL;
+              chordPaint = PAINT_CHORD_SMALL;
               todo(
                   "why does setting stroke width(1) have different effect than default when rendering lines with CHORD_PAINT_SMALL?");
               yAdjust = -4;
@@ -182,6 +188,67 @@ public final class PagePlotter extends BaseObject {
     TextEntry.Builder b = TextEntry.newBuilder();
     mTextEntries.add(b);
     return b;
+  }
+
+  private static int renderText(Graphics2D g, Collection<TextEntry.Builder> textEntries, IPoint topLeft) {
+
+    todo(
+        "why does setting stroke width(1) have different effect than default when rendering lines with CHORD_PAINT_SMALL?");
+
+    final boolean DEBUG = false;
+    FontMetrics f = g.getFontMetrics();
+
+    int maxWidth = 0;
+    int heightTotal = 0;
+    {
+      int y = 0;
+      for (TextEntry.Builder tx : textEntries) {
+
+        int rowHeight = f.getHeight();
+        tx.yOffset(y);
+
+        if (tx.text().startsWith("~")) {
+          todo("figure out how to parameterize this w.r.t. fonts etc");
+          rowHeight = DASH_HEIGHT;
+        } else
+          tx.renderWidth(f.stringWidth(tx.text()));
+
+        maxWidth = Math.max(maxWidth, tx.renderWidth());
+        y += rowHeight;
+        heightTotal = y - f.getLeading();
+      }
+    }
+
+    int py = topLeft.y;
+    int x0 = topLeft.x;
+    int x1 = topLeft.x + maxWidth;
+
+    if (DEBUG)
+      rect(g, x0, py, maxWidth, heightTotal);
+
+    for (TextEntry tx : textEntries) {
+      if (tx.text().startsWith("~")) {
+        switch (tx.text().substring(1)) {
+        default:
+          throw notSupported("unknown text:", tx);
+        case "dash": {
+          todo("clarify calculations here");
+          int y0 = py + f.getAscent() + DASH_HEIGHT + 2;
+          line(g, x0, y0, x1, y0);
+        }
+          break;
+        }
+      } else {
+        int y = py + tx.yOffset();
+        g.drawString(tx.text(), x0, y + f.getAscent());
+
+        if (DEBUG) {
+          line(g, x0, y, x0 + maxWidth, y + f.getHeight());
+          line(g, x0, y + f.getHeight(), x0 + maxWidth, y);
+        }
+      }
+    }
+    return maxWidth;
   }
 
   private BufferedImage mImage;
