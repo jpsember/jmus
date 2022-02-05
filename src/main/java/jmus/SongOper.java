@@ -82,7 +82,7 @@ public class SongOper extends AppOper {
   public void perform() {
 
     if (alert("using default"))
-      mSourceFile = new File("bojangles.txt");
+      mSourceFile = new File("sample_song.txt");
 
     if (Files.empty(mSourceFile)) {
       setError("Please specify a source file");

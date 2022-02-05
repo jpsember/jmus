@@ -24,7 +24,7 @@ import js.json.JSMap;
 import js.parsing.DFA;
 
 public final class Util {
-
+  
   // 
   // Useful reference for unicode:  https://en.wikipedia.org/wiki/Unicode_subscripts_and_superscripts
 
@@ -145,7 +145,8 @@ public final class Util {
 
   private static DFA mDFA;
 
-  public static final int T_WS = 0, T_CR = 1, T_STRING = 2, T_CHORD = 3, T_FWD_SLASH = 4;
+  public static final int T_WS = 0, T_CR = 1, T_STRING = 2, T_CHORD = 3, T_FWD_SLASH = 4, T_PAROP = 5,
+      T_PARCL = 6, T_PERIOD = 7;
 
   // ------------------------------------------------------------------
   // Rendering

@@ -3,4 +3,7 @@ enum {
   minor,
   diminished,
   augmented,
+
+  // A special sentinel value
+  beat,
 }

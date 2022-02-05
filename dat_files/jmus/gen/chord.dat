@@ -10,5 +10,9 @@ fields {
 
   int number;
 
+  // -1 indicates it occupies every beat in the measure
+  //
+  int beat = -1;
+
   ?Chord slash_chord;
 }

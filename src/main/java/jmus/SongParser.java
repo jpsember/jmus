@@ -4,6 +4,7 @@ import static jmus.Util.*;
 import static js.base.Tools.*;
 
 import java.io.File;
+import java.util.List;
 
 import jmus.gen.Accidental;
 import jmus.gen.Chord;
@@ -18,6 +19,9 @@ import js.parsing.Scanner;
 import js.parsing.Token;
 
 public class SongParser extends BaseObject {
+
+  // TODO: add song title
+  // TODO: add auxilliary info (or arbitrary text), e.g. time signature, author, section title, section footer
 
   public SongParser(File sourceFile) {
     mSourceFile = sourceFile;
@@ -37,19 +41,40 @@ public class SongParser extends BaseObject {
         continue;
       }
 
-      Token t = mScanner.read(T_CHORD);
-      Chord c = parseChord(t);
+      if (readIf(T_PAROP)) {
+        List<Chord> chordSet = arrayList();
 
-      if (mScanner.readIf(T_FWD_SLASH) != null) {
-        Chord auxChord = parseChord(mScanner.read(T_CHORD));
-        c = c.toBuilder().slashChord(auxChord).build();
+        while (!readIf(T_PARCL)) {
+          Chord.Builder c = readScalarChord();
+          c.beat(chordSet.size());
+          chordSet.add(c);
+        }
+
+      } else {
+        Chord.Builder c = readScalarChord();
+        musicLine().chords().add(c.build());
       }
-      musicLine().chords().add(c);
     }
 
     flushMusicLine();
     flushMusicSection();
+    pr("parsed:",INDENT,song());
     return song().build();
+  }
+
+  private Chord.Builder readScalarChord() {
+
+    Chord.Builder c = parseChord();
+
+    if (readIf(T_FWD_SLASH)) {
+      Chord.Builder auxChord = parseChord();
+      c.slashChord(auxChord);
+    }
+    return c;
+  }
+
+  private boolean readIf(int tokenId) {
+    return null != mScanner.readIf(tokenId);
   }
 
   private Song.Builder song() {
@@ -95,8 +120,13 @@ public class SongParser extends BaseObject {
     return Math.min(crCount, 2);
   }
 
-  private Chord parseChord(Token t) {
+  private Chord.Builder parseChord() {
+    if (readIf(T_PERIOD))
+      return Chord.newBuilder().type(ChordType.BEAT);
+
+    Token t = mScanner.read(T_CHORD);
     try {
+
       Chord.Builder b = Chord.newBuilder();
       String s = t.text();
       int k = 0;
@@ -147,7 +177,7 @@ public class SongParser extends BaseObject {
           break;
         }
       }
-      return b.build();
+      return b;
     } catch (Throwable th) {
       throw t.fail("Trouble parsing chord");
     }
