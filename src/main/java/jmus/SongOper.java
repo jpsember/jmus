@@ -28,7 +28,7 @@ import static js.base.Tools.*;
 
 import java.io.File;
 
-import static jmus.Util.*;
+import static jmus.MusUtil.*;
 
 import jmus.gen.MainConfig;
 import jmus.gen.Scale;
@@ -101,6 +101,7 @@ public class SongOper extends AppOper {
       String songText = renderSongAsText(song, scale);
       System.out.println(songText);
     }
+    pr("...done");
   }
 
   private File mSourceFile;

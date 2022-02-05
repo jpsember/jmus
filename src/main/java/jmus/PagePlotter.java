@@ -22,7 +22,7 @@ import js.geometry.Matrix;
 import js.graphics.ImgUtil;
 import js.graphics.Paint;
 
-import static jmus.Util.*;
+import static jmus.MusUtil.*;
 
 /**
  * For plotting a song into a png
@@ -53,12 +53,13 @@ public final class PagePlotter extends BaseObject {
     ImgUtil.writeImage(Files.S, mImage, outputFile);
   }
 
+  private static final Paint PAINT_LIGHTER = PAINT_NORMAL.toBuilder().color(192, 192, 192).width(3).build();
+
   public void render(Song song, Scale scale) {
 
     int chordHeight = 45;
-    int barPadY = 5;
-    int barPadX = 5;
-    int barWidth = 100;
+    int barPadY = 10;
+    int barPadX = 15;
     int chordPadX = 12;
 
     int spacingBetweenSections = 30;
@@ -68,60 +69,100 @@ public final class PagePlotter extends BaseObject {
 
     int y = PAGE_CONTENT.y;
 
-    boolean indentRequired = false;
+    int sectionNumber = -1;
     for (MusicSection section : song.sections()) {
-      if (indentRequired) {
-        todo("figure out blank line spacing");
+
+      sectionNumber++;
+      if (sectionNumber != 0)
         y += spacingBetweenSections;
-      }
-      indentRequired = true;
 
-      for (MusicLine line : section.lines()) {
+      List<List<MusicLine>> barLists = arrayList();
+      int[] maxChordsPerBar = new int[50];
 
-        // Split the line's chords into bars
-        List<List<Chord>> barList = arrayList();
-        {
-          List<Chord> currentBar = null;
-          for (Chord chord : line.chords()) {
-
-            // If this chord is the start of a new bar, start a new bar list
-            if (chord.beatNumber() <= 0) {
-              currentBar = arrayList();
-              barList.add(currentBar);
-            }
-            currentBar.add(chord);
+      // Determine chord sets within each bar, and the maximum size of each such set
+      {
+        for (MusicLine line : section.lines()) {
+          List<MusicLine> chordsWithinBarsList = extractChordsForBars(line);
+          barLists.add(chordsWithinBarsList);
+          int j = -1;
+          for (MusicLine m : chordsWithinBarsList) {
+            j++;
+            maxChordsPerBar[j] = Math.max(maxChordsPerBar[j], m.chords().size());
           }
         }
+      }
 
-        int barHeight = chordHeight + 2 * barPadY;
+      int barHeight = chordHeight + 1 * barPadY;
+
+      // Loop over each music line in the song
+
+      for (List<MusicLine> barList : barLists) {
+
+        // Loop over each set of chords in each bar
+
         int barNum = -1;
-        for (List<Chord> currentBar : barList) {
+        int barX = PAGE_CONTENT.x;
+
+        for (MusicLine bars : barList) {
           barNum++;
 
-          int barX = PAGE_CONTENT.x + barNum * barWidth;
+          int barWidth = (MEAN_CHORD_WIDTH_PIXELS + chordPadX) * maxChordsPerBar[barNum] + chordPadX;
+          PAINT_LIGHTER.apply(graphics());
           rect(graphics(), barX, y, barWidth, barHeight);
 
           int cx = barX + barPadX;
           int cy = y + barPadY;
-          for (Chord chord : currentBar) {
 
-            // If this is a slash chord, use a smaller font
-            Paint chordPaint = (chord.slashChord() == null) ? CHORD_PAINT_NORMAL : CHORD_PAINT_SMALL;
+          // Loop over each chord in this bar
+
+          for (Chord chord : bars.chords()) {
+            Paint chordPaint = CHORD_PAINT_NORMAL;
+            int yAdjust = 0;
+
+            if (chord.slashChord() != null) {
+              chordPaint = CHORD_PAINT_SMALL;
+              todo(
+                  "why does setting stroke width(1) have different effect than default when rendering lines with CHORD_PAINT_SMALL?");
+              yAdjust = -4;
+            }
+
             chordPaint.apply(graphics());
 
-            int displayedWidth = plotChord(chord, scale, new IPoint(cx, cy));
+            int displayedWidth = plotChord(chord, scale, new IPoint(cx, cy + yAdjust));
             cx += displayedWidth + chordPadX;
           }
+
+          barX += barWidth;
         }
-        todo("figure out spacing between lines");
+
         y += barHeight;
+        if (false && alert("stopping after single music line"))
+          break;
       }
 
       if (false && alert("stopping after single section"))
         break;
     }
-
   }
+
+  private List<MusicLine> extractChordsForBars(MusicLine line) {
+    // Split the line's chords into bars
+    List<MusicLine> barList = arrayList();
+
+    MusicLine.Builder currentBar = MusicLine.newBuilder();
+    for (Chord chord : line.chords()) {
+
+      // If this chord is the start of a new bar, start a new bar list
+      if (chord.beatNumber() <= 0) {
+        currentBar = MusicLine.newBuilder();
+        barList.add(currentBar);
+      }
+      currentBar.chords().add(chord);
+    }
+    return barList;
+  }
+
+  List<List<Chord>> barList = arrayList();
 
   private int plotChord(Chord chord, Scale scale, IPoint location) {
     mTextEntries.clear();

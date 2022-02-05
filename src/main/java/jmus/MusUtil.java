@@ -10,6 +10,7 @@ import java.awt.GraphicsEnvironment;
 import java.util.Collection;
 
 import jmus.gen.Chord;
+import jmus.gen.ChordType;
 import jmus.gen.MusicLine;
 import jmus.gen.MusicSection;
 import jmus.gen.Scale;
@@ -23,7 +24,7 @@ import js.graphics.Paint;
 import js.json.JSMap;
 import js.parsing.DFA;
 
-public final class Util {
+public final class MusUtil {
 
   // 
   // Useful reference for unicode:  https://en.wikipedia.org/wiki/Unicode_subscripts_and_superscripts
@@ -36,6 +37,11 @@ public final class Util {
       Chord slashChordOrNull) {
     if (sb == null)
       sb = new StringBuilder();
+
+    if (chord.type() == ChordType.BEAT) {
+      sb.append(".");
+      return sb;
+    }
 
     if (scale != null) {
 
@@ -125,7 +131,7 @@ public final class Util {
 
   public static ScaleMap scaleMap() {
     if (sScaleMap == null) {
-      String content = Files.readString(Util.class, "scales.json");
+      String content = Files.readString(MusUtil.class, "scales.json");
       sScaleMap = Files.parseAbstractDataOpt(ScaleMap.DEFAULT_INSTANCE, new JSMap(content));
     }
     return sScaleMap;
@@ -139,7 +145,7 @@ public final class Util {
 
   public static DFA dfa() {
     if (mDFA == null)
-      mDFA = new DFA(Files.readString(Util.class, "tokens.dfa"));
+      mDFA = new DFA(Files.readString(MusUtil.class, "tokens.dfa"));
     return mDFA;
   }
 
@@ -158,7 +164,8 @@ public final class Util {
   // ideally to match whatever printer we are using.
   public static final int DOTS_PER_INCH = Math.round(300 / (float) PIXELS_PER_INCH);
 
-  public static final IPoint PAGE_SIZE = new IPoint(PIXELS_PER_INCH * 8.5f, PIXELS_PER_INCH * 11f);
+  // For simplicity during development, use smaller page size
+  public static final IPoint PAGE_SIZE = new IPoint(PIXELS_PER_INCH * 8.5f, PIXELS_PER_INCH * 5f); //11f);
   public static final int PAGE_MARGIN = PIXELS_PER_INCH / 4;
   public static final IRect PAGE_FULL = new IRect(PAGE_SIZE);
   public static final IRect PAGE_CONTENT = PAGE_FULL.withInset(PAGE_MARGIN);
@@ -181,22 +188,23 @@ public final class Util {
   public static final String FONT_NAME = "Dialog";
 
   public static final Font FONT_PLAIN = new Font(FONT_NAME, Font.PLAIN, 18);
-  
+
   public static final Font FONT_BOLD = new Font(FONT_NAME, Font.BOLD, 18);
   public static final Paint PAINT_NORMAL = Paint.newBuilder().font(FONT_BOLD, 1f).color(Color.black).width(1f)
       .build();
-  public static final Paint PAINT_LIGHTER = PAINT_NORMAL.toBuilder().color(64, 64, 64).build();
 
-  
-  
-  public static final Paint CHORD_PAINT_NORMAL = Paint.newBuilder().font(FONT_PLAIN, 2.2f).color(Color.black).width(1f)
-      .build();
-  public static final Paint CHORD_PAINT_SMALL  = CHORD_PAINT_NORMAL.toBuilder().font(FONT_PLAIN, 1f);
+  public static final int MEAN_CHORD_WIDTH_PIXELS = 35;
+
+  public static final Paint CHORD_PAINT_NORMAL = Paint.newBuilder().font(FONT_PLAIN, 1.8f)
+      .color(Color.black).width(1).build();
+  public static final Paint CHORD_PAINT_SMALL = CHORD_PAINT_NORMAL.toBuilder().font(FONT_PLAIN, 1f).width(1);
 
   private static final int DASH_HEIGHT = 3;
 
   public static int renderText(Graphics2D g, Collection<TextEntry.Builder> textEntries, IPoint topLeft) {
 
+    todo("why does setting stroke width(1) have different effect than default when rendering lines with CHORD_PAINT_SMALL?");
+    
     final boolean DEBUG = false;
     FontMetrics f = g.getFontMetrics();
 

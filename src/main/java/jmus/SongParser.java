@@ -1,6 +1,6 @@
 package jmus;
 
-import static jmus.Util.*;
+import static jmus.MusUtil.*;
 import static js.base.Tools.*;
 
 import java.io.File;
@@ -29,6 +29,8 @@ public class SongParser extends BaseObject {
   public Song parse() {
 
     mScanner = new Scanner(dfa(), Files.readString(mSourceFile));
+    mScanner.setSourceDescription(mSourceFile.getName());
+    mScanner.alertVerbose();
 
     while (mScanner.hasNext()) {
 
@@ -57,7 +59,7 @@ public class SongParser extends BaseObject {
 
     flushMusicLine();
     flushMusicSection();
-    pr("parsed:", INDENT, song());
+    //pr("parsed:", INDENT, song());
     return song().build();
   }
 
