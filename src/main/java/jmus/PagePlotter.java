@@ -66,22 +66,11 @@ public final class PagePlotter extends BaseObject {
 
     int y = PAGE_CONTENT.y;
 
-    int sectionNumber = -1;
     for (MusicSection section : song.sections()) {
-
-      sectionNumber++;
-      if (sectionNumber != 0)
-        y += style.spacingBetweenSections;
-      todo("special spacing for text sections");
 
       if (section.type() != 0) {
 
-        plotText(section.type(), section.text(), style, new IPoint(PAGE_CONTENT.x, y));
-
-        todo("figure out text spacing");
-        int textHeight = style.mChordHeight + 1 * style.barPadY;
-
-        y += textHeight;
+        y += plotText(section.type(), section.text(), style, new IPoint(PAGE_CONTENT.x, y));
         continue;
       }
 
@@ -101,7 +90,7 @@ public final class PagePlotter extends BaseObject {
         }
       }
 
-      int barHeight = style.mChordHeight + 1 * style.barPadY;
+      int barHeight = style.chordHeight + 1 * style.barPadY;
 
       // Loop over each music line in the song
 
@@ -115,9 +104,9 @@ public final class PagePlotter extends BaseObject {
         for (MusicLine bars : barList) {
           barNum++;
 
-          int barWidth = (style.mMeanChordWidthPixels + style.chordPadX) * maxChordsPerBar[barNum]
+          int barWidth = (style.meanChordWidthPixels + style.chordPadX) * maxChordsPerBar[barNum]
               + style.chordPadX;
-          style.mPaintBarFrame.apply(graphics());
+          style.paintBarFrame.apply(graphics());
           rect(graphics(), barX, y, barWidth, barHeight);
 
           int cx = barX + style.barPadX;
@@ -126,11 +115,11 @@ public final class PagePlotter extends BaseObject {
           // Loop over each chord in this bar
 
           for (Chord chord : bars.chords()) {
-            Paint chordPaint = style.mPaintChord;
+            Paint chordPaint = style.paintChord;
             int yAdjust = 0;
 
             if (chord.slashChord() != null) {
-              chordPaint = style.mPaintChordSmall;
+              chordPaint = style.paintChordSmall;
               todo(
                   "why does setting stroke width(1) have different effect than default when rendering lines with CHORD_PAINT_SMALL?");
               yAdjust = -4;
@@ -150,12 +139,14 @@ public final class PagePlotter extends BaseObject {
           break;
       }
 
+      y += style.spacingBetweenSections;
+
       if (false && alert("stopping after single section"))
         break;
     }
   }
 
-  private void plotText(int type, String text, Style style, IPoint location) {
+  private int plotText(int type, String text, Style style, IPoint location) {
     Graphics2D g = graphics();
     Paint pt;
     switch (type) {
@@ -180,6 +171,8 @@ public final class PagePlotter extends BaseObject {
 
     int y = location.y + f.getAscent();
     g.drawString(text, location.x, y);
+
+    return f.getHeight() + style.spacingBetweenSections / 3;
   }
 
   private List<MusicLine> extractChordsForBars(MusicLine line) {
@@ -241,7 +234,7 @@ public final class PagePlotter extends BaseObject {
 
         if (tx.text().startsWith("~")) {
           todo("figure out how to parameterize this w.r.t. fonts etc");
-          rowHeight = style.mDashHeight;
+          rowHeight = style.dashHeight;
         } else
           tx.renderWidth(f.stringWidth(tx.text()));
 
@@ -264,7 +257,7 @@ public final class PagePlotter extends BaseObject {
         default:
           throw notSupported("unknown text:", tx);
         case "dash": {
-          int y0 = py + style.mChordHeight / 2;
+          int y0 = py + style.chordHeight / 2;
           line(g, x0, y0, x1, y0);
         }
           break;
@@ -283,12 +276,12 @@ public final class PagePlotter extends BaseObject {
   }
 
   private static class Style {
-    final Paint mPaintChord;
-    final Paint mPaintChordSmall;
-    final Paint mPaintBarFrame;
-    final int mMeanChordWidthPixels;
-    final int mChordHeight;
-    final int mDashHeight;
+    final Paint paintChord;
+    final Paint paintChordSmall;
+    final Paint paintBarFrame;
+    final int meanChordWidthPixels;
+    final int chordHeight;
+    final int dashHeight;
     final int barPadY;
     final int barPadX;
     final int chordPadX;
@@ -298,23 +291,23 @@ public final class PagePlotter extends BaseObject {
     final Paint paintText;
     final Paint paintSmallText;
 
-    Style(Paint chord, Paint chordSmall, Paint barFrame, int meanChordWidth, int chordHeight, int dashHeight,
-        int barPadX, int barPadY, int chordPadX, int spacingBetweenSections, Paint title, Paint subtitle,
-        Paint text, Paint smallText) {
-      mPaintChord = chord;
-      mPaintChordSmall = chordSmall;
-      mPaintBarFrame = barFrame;
-      mMeanChordWidthPixels = meanChordWidth;
-      mChordHeight = chordHeight;
-      mDashHeight = dashHeight;
-      this.barPadX = barPadX;
-      this.barPadY = barPadY;
-      this.chordPadX = chordPadX;
-      this.spacingBetweenSections = spacingBetweenSections;
-      paintTitle = title;
-      paintSubtitle = subtitle;
-      paintText = text;
-      paintSmallText = smallText;
+    Style(Paint chord, Paint chordSmall, Paint barFrame, int meanChordWidth, int chordHt, int dashHt,
+        int barpx, int barpy, int chordpx, int spaceBetwSect, Paint title, Paint subtitle, Paint text,
+        Paint smallText) {
+      paintChord = chord.build();
+      paintChordSmall = chordSmall.build();
+      paintBarFrame = barFrame.build();
+      meanChordWidthPixels = meanChordWidth;
+      chordHeight = chordHt;
+      dashHeight = dashHt;
+      barPadX = barpx;
+      barPadY = barpy;
+      chordPadX = chordpx;
+      spacingBetweenSections = spaceBetwSect;
+      paintTitle = title.build();
+      paintSubtitle = subtitle.build();
+      paintText = text.build();
+      paintSmallText = smallText.build();
     }
   }
 
@@ -326,10 +319,10 @@ public final class PagePlotter extends BaseObject {
     final Paint ptChordSmall = ptChord.toBuilder().font(FONT_PLAIN, 1f).build();
     final Paint ptFrame = PAINT_NORMAL.toBuilder().color(192, 192, 192).width(3).build();
 
-    final Paint ptTitle = PAINT_NORMAL.toBuilder().font(FONT_BOLD, 2.3f).build();
-    final Paint ptSubtitle = ptTitle.toBuilder().font(FONT_BOLD, 1.5f).build();
+    final Paint ptTitle = PAINT_NORMAL.toBuilder().font(FONT_BOLD, 1.5f).build();
+    final Paint ptSubtitle = ptTitle.toBuilder().font(FONT_BOLD, 1.0f).build();
     final Paint ptText = PAINT_NORMAL.toBuilder().font(FONT_PLAIN, 0.7f).build();
-    final Paint ptSmallText = ptText.toBuilder().font(FONT_PLAIN, 0.5f).build();
+    final Paint ptSmallText = ptText.toBuilder().font(FONT_PLAIN, 0.6f).build();
 
     if (sStyles == null) {
       sStyles = arrayList();
@@ -337,9 +330,11 @@ public final class PagePlotter extends BaseObject {
       sStyles.add(new Style(ptChord, ptChordSmall, ptFrame, 35, 48, 3, 15, 10, 12, 34, ptTitle, ptSubtitle,
           ptText, ptSmallText));
 
-      sStyles.add(new Style(ptChord.toBuilder().font(FONT_PLAIN, 1.2f).build(),
-          ptChordSmall.toBuilder().font(FONT_PLAIN, 0.7f).build(), ptFrame.toBuilder().width(2).build(), 24,
-          32, 2, 10, 7, 9, 24, ptTitle, ptSubtitle, ptText, ptSmallText));
+      sStyles.add(new Style( //
+          ptChord.toBuilder().font(FONT_PLAIN, 1.2f), //
+          ptChordSmall.toBuilder().font(FONT_PLAIN, 0.7f), //
+          ptFrame.toBuilder().width(2).build(), 24, 32, 2, 10, 7, 9, 24, //
+          ptTitle, ptSubtitle, ptText, ptSmallText));
 
     }
     return sStyles.get(index);
