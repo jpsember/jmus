@@ -150,7 +150,7 @@ public final class MusUtil {
   private static DFA mDFA;
 
   public static final int T_WS = 0, T_CR = 1, T_STRING = 2, T_CHORD = 3, T_FWD_SLASH = 4, T_PAROP = 5,
-      T_PARCL = 6, T_PERIOD = 7;
+      T_PARCL = 6, T_PERIOD = 7, T_TITLE = 8, T_SUBTITLE = 9, T_TEXT = 10, T_SMALLTEXT = 11;
 
   // ------------------------------------------------------------------
   // Rendering
@@ -162,8 +162,7 @@ public final class MusUtil {
   // ideally to match whatever printer we are using.
   public static final int DOTS_PER_INCH = Math.round(300 / (float) PIXELS_PER_INCH);
 
-  // For simplicity during development, use smaller page size
-  public static final IPoint PAGE_SIZE = new IPoint(PIXELS_PER_INCH * 8.5f, PIXELS_PER_INCH * 5f); //11f);
+  public static final IPoint PAGE_SIZE = new IPoint(PIXELS_PER_INCH * 8.5f, PIXELS_PER_INCH * 11f);
   public static final int PAGE_MARGIN = PIXELS_PER_INCH / 4;
   public static final IRect PAGE_FULL = new IRect(PAGE_SIZE);
   public static final IRect PAGE_CONTENT = PAGE_FULL.withInset(PAGE_MARGIN);
@@ -187,7 +186,7 @@ public final class MusUtil {
   public static final Font FONT_PLAIN = new Font(FONT_NAME, Font.PLAIN, 18);
   public static final Paint PAINT_NORMAL = Paint.newBuilder().font(FONT_PLAIN, 1f).color(Color.black)
       .width(1f).build();
- 
+
   // fontOffset 0, 86, 165
   //
   public static void renderFonts(Graphics2D g, int fontOffset) {

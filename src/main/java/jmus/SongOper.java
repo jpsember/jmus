@@ -94,7 +94,7 @@ public class SongOper extends AppOper {
     if (true) {
 
       PagePlotter p = new PagePlotter();
-      p.render(song, scale);
+      p.render(song, scale, 0);
       p.generateOutputFile(new File("_SKIP_experiment.png"));
     } else {
 
