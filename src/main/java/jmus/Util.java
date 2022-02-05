@@ -180,14 +180,22 @@ public final class Util {
 
   public static final String FONT_NAME = "Dialog";
 
+  public static final Font FONT_PLAIN = new Font(FONT_NAME, Font.PLAIN, 18);
+  
   public static final Font FONT_BOLD = new Font(FONT_NAME, Font.BOLD, 18);
   public static final Paint PAINT_NORMAL = Paint.newBuilder().font(FONT_BOLD, 1f).color(Color.black).width(1f)
       .build();
   public static final Paint PAINT_LIGHTER = PAINT_NORMAL.toBuilder().color(64, 64, 64).build();
 
+  
+  
+  public static final Paint CHORD_PAINT_NORMAL = Paint.newBuilder().font(FONT_PLAIN, 2.2f).color(Color.black).width(1f)
+      .build();
+  public static final Paint CHORD_PAINT_SMALL  = CHORD_PAINT_NORMAL.toBuilder().font(FONT_PLAIN, 1f);
+
   private static final int DASH_HEIGHT = 3;
 
-  public static void renderText(Graphics2D g, Collection<TextEntry.Builder> textEntries, IPoint topLeft) {
+  public static int renderText(Graphics2D g, Collection<TextEntry.Builder> textEntries, IPoint topLeft) {
 
     final boolean DEBUG = false;
     FontMetrics f = g.getFontMetrics();
@@ -242,6 +250,7 @@ public final class Util {
         }
       }
     }
+    return maxWidth;
   }
 
   // fontOffset 0, 86, 165

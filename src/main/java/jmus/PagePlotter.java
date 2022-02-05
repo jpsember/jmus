@@ -20,6 +20,7 @@ import js.file.Files;
 import js.geometry.IPoint;
 import js.geometry.Matrix;
 import js.graphics.ImgUtil;
+import js.graphics.Paint;
 
 import static jmus.Util.*;
 
@@ -54,11 +55,11 @@ public final class PagePlotter extends BaseObject {
 
   public void render(Song song, Scale scale) {
 
-    int chordHeight = 25;
+    int chordHeight = 45;
     int barPadY = 5;
     int barPadX = 5;
     int barWidth = 100;
-int chordPadX = 3;
+    int chordPadX = 12;
 
     int spacingBetweenSections = 30;
 
@@ -97,15 +98,18 @@ int chordPadX = 3;
         for (List<Chord> currentBar : barList) {
           barNum++;
 
-          todo("figure out chord spacing");
-
           int barX = PAGE_CONTENT.x + barNum * barWidth;
           rect(graphics(), barX, y, barWidth, barHeight);
 
           int cx = barX + barPadX;
           int cy = y + barPadY;
           for (Chord chord : currentBar) {
-            int displayedWidth = plotChord(chord, scale, new IPoint(cx,cy));
+
+            // If this is a slash chord, use a smaller font
+            Paint chordPaint = (chord.slashChord() == null) ? CHORD_PAINT_NORMAL : CHORD_PAINT_SMALL;
+            chordPaint.apply(graphics());
+
+            int displayedWidth = plotChord(chord, scale, new IPoint(cx, cy));
             cx += displayedWidth + chordPadX;
           }
         }
@@ -128,32 +132,9 @@ int chordPadX = 3;
       tx().text(renderChord(chord.slashChord(), scale, null, null).toString());
     }
 
-    renderText(graphics(), mTextEntries, location);
+    int width = renderText(graphics(), mTextEntries, location);
     mTextEntries.clear();
-
-    todo("figure out true width of plotted chord");
-    return 20;
-  }
-
-  public void experiment() {
-
-    Graphics2D g = graphics();
-    PAINT_NORMAL.apply(g);
-
-    if (false)
-      renderFonts(g, 0);
-
-    PAINT_LIGHTER.apply(g);
-
-    tx().text("Gm Hello4");
-    tx().text("E♭ A♭ F♯");
-    tx().text("~dash");
-    tx().text("Hippopotamus");
-
-    renderText(g, mTextEntries, new IPoint(600, 200));
-    mTextEntries.clear();
-
-    generateOutputFile(new File("_SKIP_experiment.png"));
+    return width;
   }
 
   public TextEntry.Builder tx() {
