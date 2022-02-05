@@ -24,7 +24,7 @@ import js.json.JSMap;
 import js.parsing.DFA;
 
 public final class Util {
-  
+
   // 
   // Useful reference for unicode:  https://en.wikipedia.org/wiki/Unicode_subscripts_and_superscripts
 
@@ -187,7 +187,7 @@ public final class Util {
 
   private static final int DASH_HEIGHT = 3;
 
-  public static void renderText(Graphics2D g, Collection<TextEntry.Builder> textEntries, IPoint center) {
+  public static void renderText(Graphics2D g, Collection<TextEntry.Builder> textEntries, IPoint topLeft) {
 
     final boolean DEBUG = false;
     FontMetrics f = g.getFontMetrics();
@@ -212,9 +212,10 @@ public final class Util {
         heightTotal = y - f.getLeading();
       }
     }
-    int py = center.y - heightTotal / 2;
-    int x0 = center.x - maxWidth / 2;
-    int x1 = center.x + maxWidth / 2;
+
+    int py = topLeft.y;
+    int x0 = topLeft.x;
+    int x1 = topLeft.x + maxWidth;
 
     if (DEBUG)
       rect(g, x0, py, maxWidth, heightTotal);
@@ -233,7 +234,7 @@ public final class Util {
         }
       } else {
         int y = py + tx.yOffset();
-        g.drawString(tx.text(), center.x - tx.renderWidth() / 2, y + f.getAscent());
+        g.drawString(tx.text(), x0, y + f.getAscent());
 
         if (DEBUG) {
           line(g, x0, y, x0 + maxWidth, y + f.getHeight());

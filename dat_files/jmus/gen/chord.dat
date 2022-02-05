@@ -10,9 +10,9 @@ fields {
 
   int number;
 
-  // -1 indicates it occupies every beat in the measure
+  // If >= 0, it is part of a group of chords to be displayed within a single bar
   //
-  int beat = -1;
+  int beat_number = -1;
 
   ?Chord slash_chord;
 }

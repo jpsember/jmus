@@ -4,7 +4,6 @@ import static jmus.Util.*;
 import static js.base.Tools.*;
 
 import java.io.File;
-import java.util.List;
 
 import jmus.gen.Accidental;
 import jmus.gen.Chord;
@@ -42,12 +41,12 @@ public class SongParser extends BaseObject {
       }
 
       if (readIf(T_PAROP)) {
-        List<Chord> chordSet = arrayList();
-
+        int beatNumber = 0;
         while (!readIf(T_PARCL)) {
           Chord.Builder c = readScalarChord();
-          c.beat(chordSet.size());
-          chordSet.add(c);
+          c.beatNumber(beatNumber);
+          beatNumber++;
+          musicLine().chords().add(c.build());
         }
 
       } else {
@@ -58,7 +57,7 @@ public class SongParser extends BaseObject {
 
     flushMusicLine();
     flushMusicSection();
-    pr("parsed:",INDENT,song());
+    pr("parsed:", INDENT, song());
     return song().build();
   }
 

@@ -54,9 +54,13 @@ public final class PagePlotter extends BaseObject {
 
   public void render(Song song, Scale scale) {
 
-    int spacingBetweenLines = 55;
+    int chordHeight = 25;
+    int barPadY = 5;
+    int barPadX = 5;
+    int barWidth = 100;
+int chordPadX = 3;
+
     int spacingBetweenSections = 30;
-    int spacingBetweenChords = 60;
 
     Graphics2D g = graphics();
     PAINT_NORMAL.apply(g);
@@ -73,18 +77,40 @@ public final class PagePlotter extends BaseObject {
 
       for (MusicLine line : section.lines()) {
 
-        int chordNum = -1;
-        for (Chord chord : line.chords()) {
-          chordNum++;
+        // Split the line's chords into bars
+        List<List<Chord>> barList = arrayList();
+        {
+          List<Chord> currentBar = null;
+          for (Chord chord : line.chords()) {
 
-          todo("figure out chord spacing");
-          int x = PAGE_CONTENT.x + chordNum * spacingBetweenChords;
-
-          plotChord(chord, scale, new IPoint(x, y));
+            // If this chord is the start of a new bar, start a new bar list
+            if (chord.beatNumber() <= 0) {
+              currentBar = arrayList();
+              barList.add(currentBar);
+            }
+            currentBar.add(chord);
+          }
         }
 
+        int barHeight = chordHeight + 2 * barPadY;
+        int barNum = -1;
+        for (List<Chord> currentBar : barList) {
+          barNum++;
+
+          todo("figure out chord spacing");
+
+          int barX = PAGE_CONTENT.x + barNum * barWidth;
+          rect(graphics(), barX, y, barWidth, barHeight);
+
+          int cx = barX + barPadX;
+          int cy = y + barPadY;
+          for (Chord chord : currentBar) {
+            int displayedWidth = plotChord(chord, scale, new IPoint(cx,cy));
+            cx += displayedWidth + chordPadX;
+          }
+        }
         todo("figure out spacing between lines");
-        y += spacingBetweenLines;
+        y += barHeight;
       }
 
       if (false && alert("stopping after single section"))
@@ -93,17 +119,20 @@ public final class PagePlotter extends BaseObject {
 
   }
 
-  private void plotChord(Chord chord, Scale scale, IPoint location) {
+  private int plotChord(Chord chord, Scale scale, IPoint location) {
     mTextEntries.clear();
 
     tx().text(renderChord(chord, scale, null, null).toString());
     if (chord.slashChord() != null) {
-      tx() .text("~dash");
+      tx().text("~dash");
       tx().text(renderChord(chord.slashChord(), scale, null, null).toString());
     }
 
     renderText(graphics(), mTextEntries, location);
     mTextEntries.clear();
+
+    todo("figure out true width of plotted chord");
+    return 20;
   }
 
   public void experiment() {
@@ -118,7 +147,7 @@ public final class PagePlotter extends BaseObject {
 
     tx().text("Gm Hello4");
     tx().text("E♭ A♭ F♯");
-    tx() .text("~dash");
+    tx().text("~dash");
     tx().text("Hippopotamus");
 
     renderText(g, mTextEntries, new IPoint(600, 200));
