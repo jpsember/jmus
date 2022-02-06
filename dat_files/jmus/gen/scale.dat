@@ -5,4 +5,6 @@ fields {
   // 12 chords, representing the 7 white keys of the Nashville numbers, with 5 black keys
 
   *string keys;
+
+  string name;
 }

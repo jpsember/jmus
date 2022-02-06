@@ -3,4 +3,6 @@ fields {
   string scale;
   File input;
   File output;
+
+  int seed;
 }

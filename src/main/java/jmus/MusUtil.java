@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
+import java.util.List;
 
 import jmus.gen.Chord;
 import jmus.gen.ChordType;
@@ -130,12 +131,28 @@ public final class MusUtil {
   public static ScaleMap scaleMap() {
     if (sScaleMap == null) {
       String content = Files.readString(MusUtil.class, "scales.json");
-      sScaleMap = Files.parseAbstractDataOpt(ScaleMap.DEFAULT_INSTANCE, new JSMap(content));
+      ScaleMap m = Files.parseAbstractDataOpt(ScaleMap.DEFAULT_INSTANCE, new JSMap(content));
+      ScaleMap.Builder b = ScaleMap.newBuilder();
+      for (String name : m.scales().keySet()) {
+        Scale s = m.scales().get(name);
+        b.scales().put(name, s.toBuilder().name(name).build());
+      }
+      sScaleMap = b.build();
+      todo("add other scales");
     }
     return sScaleMap;
   }
 
+  public static List<String> scaleNames() {
+    if (sScaleNames == null) {
+      sScaleNames = arrayList();
+      sScaleNames.addAll(scaleMap().scales().keySet());
+    }
+    return sScaleNames;
+  }
+
   private static ScaleMap sScaleMap;
+  private static List<String> sScaleNames;
 
   // ------------------------------------------------------------------
   // Parsing
@@ -273,7 +290,7 @@ public final class MusUtil {
   }
 
   public static Chord.Builder chord(int number, int baseNumber) {
-      return chord(number).slashChord(chord(baseNumber));
+    return chord(number).slashChord(chord(baseNumber));
   }
 
 }

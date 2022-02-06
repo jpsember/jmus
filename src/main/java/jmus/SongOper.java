@@ -27,6 +27,7 @@ package jmus;
 import static js.base.Tools.*;
 
 import java.io.File;
+import java.util.List;
 import java.util.Random;
 
 import static jmus.MusUtil.*;
@@ -91,32 +92,99 @@ public class SongOper extends AppOper {
 
   private void experiment() {
     PagePlotter p = new PagePlotter();
+    rect(p.graphics(), PAGE_CONTENT);
 
-    Style style = style(1);
+    Style style = style(0);
+    int xAdvance = style.meanChordWidthPixels + style.chordPadX + 8;
 
-    Random r = new Random(1965);
-    int x = PAGE_CONTENT.x;
     int y = PAGE_CONTENT.y;
 
-    for (int i = 0; i < 60; i++) {
+    int indent = PIXELS_PER_INCH * 1;
+    int ysep = style.chordHeight + style.spacingBetweenSections;
 
-      Chord.Builder c;
+    int chordsPerRow = 16;
+    List<Chord> chords = randomChords(chordsPerRow);
 
-      if (r.nextInt(4) == 2)
-        c = chord(1 + r.nextInt(7), 1 + r.nextInt(7));
-      else
-        c = chord(1 + r.nextInt(7));
+    int x = PAGE_CONTENT.x + indent;
+    plotChords(p, chords, null, style, new IPoint(x, y), xAdvance);
 
-      Scale scale = scale("b-flat");
+    y += ysep * 1.5;
 
-      x += p.plotChord(c, scale, style, new IPoint(x, y));
-      if (x + 20 > PAGE_CONTENT.endX()) {
-        x = PAGE_CONTENT.x;
-        y += style.chordHeight;
-      }
+    for (Scale scale : buildScaleList()) {
+
+      //  Scale scale = scale("b-flat");
+      plotChords(p, chords, scale, style, new IPoint(x, y), xAdvance);
+      y += ysep;
     }
     File outFile = new File("samples/experiment.png");
     p.generateOutputFile(outFile);
     pr("...done");
   }
+
+  private List<Scale> buildScaleList() {
+    List<Scale> scales = arrayList();
+    scales.addAll(scaleMap().scales().values());
+    return scales;
+  }
+
+  private void plotChords(PagePlotter p, List<Chord> chords, Scale scale, Style style, IPoint loc,
+      int xAdvance) {
+    int x = loc.x;
+    int y = loc.y;
+    for (Chord c : chords) {
+      p.plotChord(c, scale, style, new IPoint(x, y));
+      //rect(p.graphics(), new IRect(x, y, xAdvance - 2, style.chordHeight));
+      x += xAdvance;
+    }
+  }
+
+  private List<Chord> randomChords(int count) {
+    List<Chord> chords = arrayList();
+
+    for (int i = 0; i < count; i++) {
+
+      Chord.Builder c;
+      int mainChord = -1;
+
+      // Don't reuse a main chord if it was used recently
+      //
+      final int uniqueRecentCount = 4;
+      while (true) {
+        mainChord = random().nextInt(7) + 1;
+        boolean found = false;
+        for (int k = Math.max(0, chords.size() - uniqueRecentCount); k < chords.size(); k++) {
+          if (chords.get(k).number() == mainChord) {
+            found = true;
+            break;
+          }
+        }
+        if (!found)
+          break;
+      }
+
+      if (random().nextInt(4) == 2) {
+        int auxChord;
+        do {
+          auxChord = random().nextInt(7) + 1;
+        } while (auxChord == mainChord);
+        c = chord(mainChord, auxChord);
+      } else
+        c = chord(mainChord);
+      chords.add(c.build());
+    }
+    return chords;
+
+  }
+
+  private Random random() {
+    if (mRand == null) {
+      int seed = mConfig.seed();
+      if (seed <= 0)
+        seed = 1 + (((int) System.currentTimeMillis()) & 0xffff);
+      mRand = new Random(seed);
+    }
+    return mRand;
+  }
+
+  private Random mRand;
 }
