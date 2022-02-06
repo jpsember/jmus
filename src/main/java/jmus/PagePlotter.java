@@ -56,6 +56,8 @@ public final class PagePlotter extends BaseObject {
   }
 
   public void render(Song song, Scale scale, int styleNumber) {
+    todo(
+        "why does setting stroke width(1) have different effect than default when rendering lines with CHORD_PAINT_SMALL?");
 
     if (alert("setting style"))
       styleNumber = 1;
@@ -69,8 +71,7 @@ public final class PagePlotter extends BaseObject {
     for (MusicSection section : song.sections()) {
 
       if (section.type() != 0) {
-
-        y += plotText(section.type(), section.text(), style, new IPoint(PAGE_CONTENT.x, y));
+        y += renderString(section.type(), section.text(), style, y);
         continue;
       }
 
@@ -120,8 +121,6 @@ public final class PagePlotter extends BaseObject {
 
             if (chord.slashChord() != null) {
               chordPaint = style.paintChordSmall;
-              todo(
-                  "why does setting stroke width(1) have different effect than default when rendering lines with CHORD_PAINT_SMALL?");
               yAdjust = -4;
             }
 
@@ -144,35 +143,6 @@ public final class PagePlotter extends BaseObject {
       if (false && alert("stopping after single section"))
         break;
     }
-  }
-
-  private int plotText(int type, String text, Style style, IPoint location) {
-    Graphics2D g = graphics();
-    Paint pt;
-    switch (type) {
-    default:
-      throw notSupported("text type", type);
-    case T_TITLE:
-      pt = style.paintTitle;
-      break;
-    case T_SUBTITLE:
-      pt = style.paintSubtitle;
-      break;
-    case T_TEXT:
-      pt = style.paintText;
-      break;
-    case T_SMALLTEXT:
-      pt = style.paintSmallText;
-      break;
-    }
-
-    pt.apply(graphics());
-    FontMetrics f = g.getFontMetrics();
-
-    int y = location.y + f.getAscent();
-    g.drawString(text, location.x, y);
-
-    return f.getHeight() + style.spacingBetweenSections / 3;
   }
 
   private List<MusicLine> extractChordsForBars(MusicLine line) {
@@ -203,7 +173,7 @@ public final class PagePlotter extends BaseObject {
       tx().text(renderChord(chord.slashChord(), scale, null, null).toString());
     }
 
-    int width = renderText(graphics(), style, mTextEntries, location);
+    int width = renderTextEntries(graphics(), style, mTextEntries, location);
     mTextEntries.clear();
     return width;
   }
@@ -214,11 +184,44 @@ public final class PagePlotter extends BaseObject {
     return b;
   }
 
-  private static int renderText(Graphics2D g, Style style, Collection<TextEntry.Builder> textEntries,
-      IPoint topLeft) {
+  private int renderString(int type, String text, Style style, int locY) {
+    Graphics2D g = graphics();
+    Paint pt;
+    boolean center = false;
+    switch (type) {
+    default:
+      throw notSupported("text type", type);
+    case T_TITLE:
+      center = true;
+      pt = style.paintTitle;
+      break;
+    case T_SUBTITLE:
+      center = true;
+      pt = style.paintSubtitle;
+      break;
+    case T_TEXT:
+      pt = style.paintText;
+      break;
+    case T_SMALLTEXT:
+      pt = style.paintSmallText;
+      break;
+    }
 
-    todo(
-        "why does setting stroke width(1) have different effect than default when rendering lines with CHORD_PAINT_SMALL?");
+    pt.apply(graphics());
+    FontMetrics f = g.getFontMetrics();
+
+    int y = locY + f.getAscent();
+    int x = PAGE_CONTENT.x;
+    if (center)
+      x = PAGE_CONTENT.midX() - f.stringWidth(text) / 2;
+
+    g.drawString(text, x, y);
+
+    return f.getHeight() + style.spacingBetweenSections / 3;
+  }
+
+  private static int renderTextEntries(Graphics2D g, Style style, Collection<TextEntry.Builder> textEntries,
+      IPoint topLeft) {
 
     final boolean DEBUG = false;
     FontMetrics f = g.getFontMetrics();
@@ -233,7 +236,6 @@ public final class PagePlotter extends BaseObject {
         tx.yOffset(y);
 
         if (tx.text().startsWith("~")) {
-          todo("figure out how to parameterize this w.r.t. fonts etc");
           rowHeight = style.dashHeight;
         } else
           tx.renderWidth(f.stringWidth(tx.text()));

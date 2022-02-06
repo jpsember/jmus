@@ -29,3 +29,6 @@ target
 
 src/main/java/jmus/gen
 
+# Output from example songs
+#
+samples/*.png

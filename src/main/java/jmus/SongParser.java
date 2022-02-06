@@ -73,8 +73,17 @@ public class SongParser extends BaseObject {
   }
 
   private String parseStringText(String s) {
-    todo("parse escape chars etc");
-    return s.substring(1, s.length() - 1);
+    s = s.substring(1, s.length() - 1);
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c == '\\') {
+        i++;
+        c = s.charAt(i);
+      }
+      sb.append(c);
+    }
+    return sb.toString();
   }
 
   private Chord.Builder readScalarChord() {

@@ -67,6 +67,9 @@ public class SongOper extends AppOper {
         case 0:
           mSourceFile = Files.absolute(new File(arg));
           break;
+        case 1:
+          mOutputFile = Files.absolute(new File(arg));
+          break;
         default:
           throw badArg("extraneous argument:", arg);
         }
@@ -82,22 +85,26 @@ public class SongOper extends AppOper {
   public void perform() {
 
     if (alert("using default"))
-      mSourceFile = new File("sample_song.txt");
+      mSourceFile = new File("bojangles.txt");
 
     if (Files.empty(mSourceFile)) {
       setError("Please specify a source file");
     }
+
     Song song = new SongParser(mSourceFile).parse();
 
     Scale scale = scale("g");
 
     if (true) {
-
+      scale = null;
       PagePlotter p = new PagePlotter();
-      p.render(song, scale, 0);
-      p.generateOutputFile(new File("_SKIP_experiment.png"));
+      p.render(song, scale, 1);
+      File outFile = mOutputFile;
+      if (Files.empty(outFile))
+        outFile = mSourceFile;
+      outFile = Files.setExtension(outFile, "png");
+      p.generateOutputFile(outFile);
     } else {
-
       String songText = renderSongAsText(song, scale);
       System.out.println(songText);
     }
@@ -105,5 +112,5 @@ public class SongOper extends AppOper {
   }
 
   private File mSourceFile;
-
+  private File mOutputFile;
 }
