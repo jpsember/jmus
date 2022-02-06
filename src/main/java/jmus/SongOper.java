@@ -85,7 +85,7 @@ public class SongOper extends AppOper {
   public void perform() {
 
     if (alert("using default"))
-      mSourceFile = new File("bojangles.txt");
+      mSourceFile = new File("samples/bojangles.txt");
 
     if (Files.empty(mSourceFile)) {
       setError("Please specify a source file");
@@ -95,19 +95,19 @@ public class SongOper extends AppOper {
 
     Scale scale = scale("g");
 
-    if (true) {
-      scale = null;
-      PagePlotter p = new PagePlotter();
-      p.render(song, scale, 1);
-      File outFile = mOutputFile;
-      if (Files.empty(outFile))
-        outFile = mSourceFile;
-      outFile = Files.setExtension(outFile, "png");
-      p.generateOutputFile(outFile);
-    } else {
-      String songText = renderSongAsText(song, scale);
-      System.out.println(songText);
-    }
+    //  if (true) {
+    scale = null;
+    PagePlotter p = new PagePlotter();
+    p.render(song, scale, 1);
+    File outFile = mOutputFile;
+    if (Files.empty(outFile))
+      outFile = mSourceFile;
+    outFile = Files.setExtension(outFile, "png");
+    p.generateOutputFile(outFile);
+    //    } else {
+    //      String songText = renderSongAsText(song, scale);
+    //      System.out.println(songText);
+    //    }
     pr("...done");
   }
 

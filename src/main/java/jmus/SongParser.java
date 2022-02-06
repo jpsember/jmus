@@ -42,12 +42,15 @@ public class SongParser extends BaseObject {
       }
 
       if (peekIf(T_TITLE) || peekIf(T_SUBTITLE) || peekIf(T_TEXT) || peekIf(T_SMALLTEXT)) {
+        boolean flushed = flushMusicLine();
         flushMusicSection();
         Token t = mScanner.read();
         String s = mScanner.read(T_STRING).text();
         s = parseStringText(s);
         song().sections().add(MusicSection.newBuilder()//
-            .type(t.id()).text(s).build());
+            .type(t.id()).text(s) //
+            .sameLine(flushed) //
+            .build());
         continue;
       }
 
@@ -134,11 +137,13 @@ public class SongParser extends BaseObject {
     return mMusicLineBuilder;
   }
 
-  private void flushMusicLine() {
-    if (!musicLine().chords().isEmpty()) {
+  private boolean flushMusicLine() {
+    boolean flushed = !musicLine().chords().isEmpty();
+    if (flushed) {
       musicSection().lines().add(musicLine().build());
       mMusicLineBuilder = null;
     }
+    return flushed;
   }
 
   private int consumeCR() {

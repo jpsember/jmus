@@ -1,5 +1,8 @@
 fields {
   int type;
   string text;
+  // true if text and should be placed to right of previous bar(s)
+  bool same_line;
+
   *MusicLine lines;
 }

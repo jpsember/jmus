@@ -66,12 +66,22 @@ public final class PagePlotter extends BaseObject {
     Graphics2D g = graphics();
     PAINT_NORMAL.apply(g);
 
-    int y = PAGE_CONTENT.y;
+    IPoint pastBarPt = null;
 
+    int y = PAGE_CONTENT.y;
     for (MusicSection section : song.sections()) {
 
       if (section.type() != 0) {
-        y += renderString(section.type(), section.text(), style, y);
+        IPoint plotLoc;
+        boolean sameLine = section.sameLine() && pastBarPt != null;
+        if (sameLine)
+          plotLoc = pastBarPt.sumWith(style.barPadX, 0);
+        else
+          plotLoc = new IPoint(PAGE_CONTENT.x, y);
+
+        int adv = renderString(section.type(), section.text(), style, plotLoc, sameLine);
+        if (!sameLine)
+          y += adv;
         continue;
       }
 
@@ -132,8 +142,9 @@ public final class PagePlotter extends BaseObject {
 
           barX += barWidth;
         }
-
         y += barHeight;
+        pastBarPt = new IPoint(barX, y);
+
         if (false && alert("stopping after single music line"))
           break;
       }
@@ -184,7 +195,7 @@ public final class PagePlotter extends BaseObject {
     return b;
   }
 
-  private int renderString(int type, String text, Style style, int locY) {
+  private int renderString(int type, String text, Style style, IPoint loc, boolean plotAbove) {
     Graphics2D g = graphics();
     Paint pt;
     boolean center = false;
@@ -210,8 +221,11 @@ public final class PagePlotter extends BaseObject {
     pt.apply(graphics());
     FontMetrics f = g.getFontMetrics();
 
-    int y = locY + f.getAscent();
-    int x = PAGE_CONTENT.x;
+    int x = loc.x;
+    int y = loc.y;
+    if (!plotAbove)
+      y = y + f.getAscent();
+
     if (center)
       x = PAGE_CONTENT.midX() - f.stringWidth(text) / 2;
 
