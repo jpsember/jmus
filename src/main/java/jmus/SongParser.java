@@ -54,6 +54,11 @@ public class SongParser extends BaseObject {
         continue;
       }
 
+      if (peekIf(T_BEATS)) {
+        mBeatsPerBar = Integer.parseInt(chompPrefix(mScanner.read().text(), "beats:"));
+        continue;
+      }
+
       if (readIf(T_PAROP)) {
         int beatNumber = 0;
         while (!readIf(T_PARCL)) {
@@ -71,7 +76,6 @@ public class SongParser extends BaseObject {
 
     flushMusicLine();
     flushMusicSection();
-    //pr("parsed:", INDENT, song());
     return song().build();
   }
 
@@ -117,7 +121,7 @@ public class SongParser extends BaseObject {
 
   private void flushMusicSection() {
     flushMusicLine();
-    if (!musicSection().lines().isEmpty()) {
+    if (mMusicSectionBuilder != null && !musicSection().lines().isEmpty()) {
       song().sections().add(musicSection().build());
       mMusicSectionBuilder = null;
     }
@@ -125,7 +129,7 @@ public class SongParser extends BaseObject {
 
   private MusicSection.Builder musicSection() {
     if (mMusicSectionBuilder == null) {
-      mMusicSectionBuilder = MusicSection.newBuilder();
+      mMusicSectionBuilder = MusicSection.newBuilder().beatsPerBar(mBeatsPerBar);
     }
     return mMusicSectionBuilder;
   }
@@ -223,5 +227,5 @@ public class SongParser extends BaseObject {
   private Song.Builder mSongBuilder;
   private MusicSection.Builder mMusicSectionBuilder;
   private MusicLine.Builder mMusicLineBuilder;
-
+  private int mBeatsPerBar;
 }

@@ -27,28 +27,5 @@ SUBTITLE: subtitle
 TEXT: text
 SMALLTEXT: smalltext
 
+BEATS: beats\:\d
 
-
-#EQUALS: =
-
-#IDENTIFIER: [a-zA-Z_][a-zA-Z_0-9]*(\.([a-zA-Z_][a-zA-Z_0-9]*))*
-
-#NUMBER: [-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?
-
-#SEMI: ;
-#BROP: \{
-#BRCL: \}
-#SQOP: \[
-#SQCL: \]
-#COMMA: \,
-#COLON: \:
-#BOOL: (false|true)
-#EXCLAIM: \!
-
-#FIELDS: fields
-#ENUM: enum
-#OPTIONAL: \?
-#REPEATED: \*
-#MAP: map
-#SET: set
-#EXTERN: extern

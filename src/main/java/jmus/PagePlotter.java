@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 
 import jmus.gen.Chord;
+import jmus.gen.ChordType;
 import jmus.gen.MusicLine;
 import jmus.gen.MusicSection;
 import jmus.gen.Scale;
@@ -43,6 +44,8 @@ public final class PagePlotter extends BaseObject {
     PAINT_NORMAL.apply(g);
   }
 
+  private static final Color BAR_COLOR = new Color(128, 128, 128);
+
   public Graphics2D graphics() {
     return mGraphics;
   }
@@ -59,8 +62,6 @@ public final class PagePlotter extends BaseObject {
     todo(
         "why does setting stroke width(1) have different effect than default when rendering lines with CHORD_PAINT_SMALL?");
 
-    if (alert("setting style"))
-      styleNumber = 1;
     Style style = style(styleNumber);
 
     Graphics2D g = graphics();
@@ -91,7 +92,7 @@ public final class PagePlotter extends BaseObject {
       // Determine chord sets within each bar, and the maximum size of each such set
       {
         for (MusicLine line : section.lines()) {
-          List<MusicLine> chordsWithinBarsList = extractChordsForBars(line);
+          List<MusicLine> chordsWithinBarsList = extractChordsForBars(line, section.beatsPerBar());
           barLists.add(chordsWithinBarsList);
           int j = -1;
           for (MusicLine m : chordsWithinBarsList) {
@@ -126,18 +127,7 @@ public final class PagePlotter extends BaseObject {
           // Loop over each chord in this bar
 
           for (Chord chord : bars.chords()) {
-            Paint chordPaint = style.paintChord;
-            int yAdjust = 0;
-
-            if (chord.slashChord() != null) {
-              chordPaint = style.paintChordSmall;
-              yAdjust = -4;
-            }
-
-            chordPaint.apply(graphics());
-
-            int displayedWidth = plotChord(chord, scale, style, new IPoint(cx, cy + yAdjust));
-            cx += displayedWidth + style.chordPadX;
+            cx += plotChord(chord, scale, style, new IPoint(cx, cy));
           }
 
           barX += barWidth;
@@ -156,26 +146,19 @@ public final class PagePlotter extends BaseObject {
     }
   }
 
-  private List<MusicLine> extractChordsForBars(MusicLine line) {
-    // Split the line's chords into bars
-    List<MusicLine> barList = arrayList();
+  public int plotChord(Chord chord, Scale scale, Style style, IPoint loc) {
+    Paint chordPaint = style.paintChord;
+    int yAdjust = 0;
 
-    MusicLine.Builder currentBar = MusicLine.newBuilder();
-    for (Chord chord : line.chords()) {
-
-      // If this chord is the start of a new bar, start a new bar list
-      if (chord.beatNumber() <= 0) {
-        currentBar = MusicLine.newBuilder();
-        barList.add(currentBar);
-      }
-      currentBar.chords().add(chord);
+    if (chord.slashChord() != null) {
+      chordPaint = style.paintChordSmall;
+      yAdjust = -4;
     }
-    return barList;
-  }
 
-  List<List<Chord>> barList = arrayList();
+    chordPaint.apply(graphics());
+    if (chord.type() == ChordType.BEAT)
+      graphics().setColor(BAR_COLOR);
 
-  private int plotChord(Chord chord, Scale scale, Style style, IPoint location) {
     mTextEntries.clear();
 
     tx().text(renderChord(chord, scale, null, null).toString());
@@ -184,10 +167,38 @@ public final class PagePlotter extends BaseObject {
       tx().text(renderChord(chord.slashChord(), scale, null, null).toString());
     }
 
-    int width = renderTextEntries(graphics(), style, mTextEntries, location);
+    int width = renderTextEntries(graphics(), style, mTextEntries, loc.sumWith(0, yAdjust));
     mTextEntries.clear();
-    return width;
+    return width + style.chordPadX;
   }
+
+  private List<MusicLine> extractChordsForBars(MusicLine line, int beatsPerBar) {
+    // Split the line's chords into bars
+    List<MusicLine> barList = arrayList();
+
+    MusicLine.Builder currentBar = MusicLine.newBuilder();
+    for (Chord chord : line.chords()) {
+
+      // If this chord is the start of a new bar, start a new bar list
+      if (chord.beatNumber() <= 0) {
+        padWithBeats(currentBar, beatsPerBar);
+        currentBar = MusicLine.newBuilder();
+        barList.add(currentBar);
+      }
+      currentBar.chords().add(chord);
+    }
+    padWithBeats(currentBar, beatsPerBar);
+    return barList;
+  }
+
+  private void padWithBeats(MusicLine.Builder bar, int beatsPerBar) {
+    if (bar == null || beatsPerBar == 0)
+      return;
+    while (bar.chords().size() < beatsPerBar)
+      bar.chords().add(Chord.newBuilder().type(ChordType.BEAT));
+  }
+
+  List<List<Chord>> barList = arrayList();
 
   public TextEntry.Builder tx() {
     TextEntry.Builder b = TextEntry.newBuilder();
@@ -289,71 +300,6 @@ public final class PagePlotter extends BaseObject {
       }
     }
     return maxWidth;
-  }
-
-  private static class Style {
-    final Paint paintChord;
-    final Paint paintChordSmall;
-    final Paint paintBarFrame;
-    final int meanChordWidthPixels;
-    final int chordHeight;
-    final int dashHeight;
-    final int barPadY;
-    final int barPadX;
-    final int chordPadX;
-    final int spacingBetweenSections;
-    final Paint paintTitle;
-    final Paint paintSubtitle;
-    final Paint paintText;
-    final Paint paintSmallText;
-
-    Style(Paint chord, Paint chordSmall, Paint barFrame, int meanChordWidth, int chordHt, int dashHt,
-        int barpx, int barpy, int chordpx, int spaceBetwSect, Paint title, Paint subtitle, Paint text,
-        Paint smallText) {
-      paintChord = chord.build();
-      paintChordSmall = chordSmall.build();
-      paintBarFrame = barFrame.build();
-      meanChordWidthPixels = meanChordWidth;
-      chordHeight = chordHt;
-      dashHeight = dashHt;
-      barPadX = barpx;
-      barPadY = barpy;
-      chordPadX = chordpx;
-      spacingBetweenSections = spaceBetwSect;
-      paintTitle = title.build();
-      paintSubtitle = subtitle.build();
-      paintText = text.build();
-      paintSmallText = smallText.build();
-    }
-  }
-
-  private static List<Style> sStyles;
-
-  private static Style style(int index) {
-
-    final Paint ptChord = PAINT_NORMAL.toBuilder().font(FONT_PLAIN, 1.8f).build();
-    final Paint ptChordSmall = ptChord.toBuilder().font(FONT_PLAIN, 1f).build();
-    final Paint ptFrame = PAINT_NORMAL.toBuilder().color(192, 192, 192).width(3).build();
-
-    final Paint ptTitle = PAINT_NORMAL.toBuilder().font(FONT_BOLD, 1.5f).build();
-    final Paint ptSubtitle = ptTitle.toBuilder().font(FONT_BOLD, 1.0f).build();
-    final Paint ptText = PAINT_NORMAL.toBuilder().font(FONT_PLAIN, 0.7f).build();
-    final Paint ptSmallText = ptText.toBuilder().font(FONT_PLAIN, 0.6f).build();
-
-    if (sStyles == null) {
-      sStyles = arrayList();
-
-      sStyles.add(new Style(ptChord, ptChordSmall, ptFrame, 35, 48, 3, 15, 10, 12, 34, ptTitle, ptSubtitle,
-          ptText, ptSmallText));
-
-      sStyles.add(new Style( //
-          ptChord.toBuilder().font(FONT_PLAIN, 1.2f), //
-          ptChordSmall.toBuilder().font(FONT_PLAIN, 0.7f), //
-          ptFrame.toBuilder().width(2).build(), 24, 32, 2, 10, 7, 9, 24, //
-          ptTitle, ptSubtitle, ptText, ptSmallText));
-
-    }
-    return sStyles.get(index);
   }
 
   private BufferedImage mImage;

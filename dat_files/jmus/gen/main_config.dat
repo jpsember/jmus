@@ -1,3 +1,6 @@
 fields {
-  int int_arg = 42;
+  int style = 0;
+  string scale;
+  File input;
+  File output;
 }

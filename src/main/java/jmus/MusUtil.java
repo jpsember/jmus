@@ -42,7 +42,6 @@ public final class MusUtil {
     }
 
     if (scale != null) {
-
       int cn = chord.number() - 1;
 
       int keyIndex;
@@ -83,6 +82,7 @@ public final class MusUtil {
     default:
       break;
     case MINOR:
+      //  sb.append('ᵐ');
       sb.append('⁻');
       break;
     case AUGMENTED:
@@ -150,7 +150,7 @@ public final class MusUtil {
   private static DFA mDFA;
 
   public static final int T_WS = 0, T_CR = 1, T_STRING = 2, T_CHORD = 3, T_FWD_SLASH = 4, T_PAROP = 5,
-      T_PARCL = 6, T_PERIOD = 7, T_TITLE = 8, T_SUBTITLE = 9, T_TEXT = 10, T_SMALLTEXT = 11;
+      T_PARCL = 6, T_PERIOD = 7, T_TITLE = 8, T_SUBTITLE = 9, T_TEXT = 10, T_SMALLTEXT = 11, T_BEATS = 12;
 
   // ------------------------------------------------------------------
   // Rendering
@@ -185,7 +185,7 @@ public final class MusUtil {
   public static final String FONT_NAME = "Dialog";
   public static final Font FONT_PLAIN = new Font(FONT_NAME, Font.PLAIN, 18);
   public static final Font FONT_BOLD = new Font(FONT_NAME, Font.BOLD, 18);
-   public static final Paint PAINT_NORMAL = Paint.newBuilder().font(FONT_PLAIN, 1f).color(Color.black)
+  public static final Paint PAINT_NORMAL = Paint.newBuilder().font(FONT_PLAIN, 1f).color(Color.black)
       .width(1f).build();
 
   // fontOffset 0, 86, 165
@@ -262,6 +262,18 @@ public final class MusUtil {
     }
 
     return lineBuilder.toString();
+  }
+
+  public static Style style(int index) {
+    return Style.styles().get(index);
+  }
+
+  public static Chord.Builder chord(int number) {
+    return Chord.newBuilder().number(number);
+  }
+
+  public static Chord.Builder chord(int number, int baseNumber) {
+      return chord(number).slashChord(chord(baseNumber));
   }
 
 }

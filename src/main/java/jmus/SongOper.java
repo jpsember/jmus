@@ -27,15 +27,17 @@ package jmus;
 import static js.base.Tools.*;
 
 import java.io.File;
+import java.util.Random;
 
 import static jmus.MusUtil.*;
 
+import jmus.gen.Chord;
 import jmus.gen.MainConfig;
 import jmus.gen.Scale;
 import jmus.gen.Song;
 import js.app.AppOper;
-import js.app.CmdLineArgs;
 import js.file.Files;
+import js.geometry.IPoint;
 
 public class SongOper extends AppOper {
 
@@ -55,62 +57,66 @@ public class SongOper extends AppOper {
   }
 
   @Override
-  protected void processAdditionalArgs() {
-    int count = 0;
-    CmdLineArgs args = app().cmdLineArgs();
-    while (args.hasNextArg()) {
-      String arg = args.nextArg();
-
-      switch (arg) {
-      default: {
-        switch (count) {
-        case 0:
-          mSourceFile = Files.absolute(new File(arg));
-          break;
-        case 1:
-          mOutputFile = Files.absolute(new File(arg));
-          break;
-        default:
-          throw badArg("extraneous argument:", arg);
-        }
-        count++;
-      }
-        break;
-      }
-    }
-    args.assertArgsDone();
-  }
-
-  @Override
   public void perform() {
+    mConfig = config();
 
-    if (alert("using default"))
-      mSourceFile = new File("samples/bojangles.txt");
+    if (alert("experiment")) {
+      experiment();
+      return;
+    }
 
+    mSourceFile = mConfig.input();
     if (Files.empty(mSourceFile)) {
       setError("Please specify a source file");
     }
 
     Song song = new SongParser(mSourceFile).parse();
 
-    Scale scale = scale("g");
+    Scale scale = null;
+    if (nonEmpty(mConfig.scale()))
+      scale = scale(mConfig.scale());
 
-    //  if (true) {
-    scale = null;
     PagePlotter p = new PagePlotter();
-    p.render(song, scale, 1);
-    File outFile = mOutputFile;
+    p.render(song, scale, mConfig.style());
+    File outFile = mConfig.output();
     if (Files.empty(outFile))
       outFile = mSourceFile;
     outFile = Files.setExtension(outFile, "png");
     p.generateOutputFile(outFile);
-    //    } else {
-    //      String songText = renderSongAsText(song, scale);
-    //      System.out.println(songText);
-    //    }
     pr("...done");
   }
 
+  private MainConfig mConfig;
   private File mSourceFile;
-  private File mOutputFile;
+
+  private void experiment() {
+    PagePlotter p = new PagePlotter();
+
+    Style style = style(1);
+
+    Random r = new Random(1965);
+    int x = PAGE_CONTENT.x;
+    int y = PAGE_CONTENT.y;
+
+    for (int i = 0; i < 60; i++) {
+
+      Chord.Builder c;
+
+      if (r.nextInt(4) == 2)
+        c = chord(1 + r.nextInt(7), 1 + r.nextInt(7));
+      else
+        c = chord(1 + r.nextInt(7));
+
+      Scale scale = scale("b-flat");
+
+      x += p.plotChord(c, scale, style, new IPoint(x, y));
+      if (x + 20 > PAGE_CONTENT.endX()) {
+        x = PAGE_CONTENT.x;
+        y += style.chordHeight;
+      }
+    }
+    File outFile = new File("samples/experiment.png");
+    p.generateOutputFile(outFile);
+    pr("...done");
+  }
 }

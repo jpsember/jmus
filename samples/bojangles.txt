@@ -1,7 +1,8 @@
 title "Mr. Bojangles"
 
-subtitle "3/4 time"
+//subtitle "3/4 time"
 
+beats:3
 
 text "Intro"
 

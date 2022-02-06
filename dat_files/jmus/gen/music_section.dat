@@ -4,5 +4,7 @@ fields {
   // true if text and should be placed to right of previous bar(s)
   bool same_line;
 
+  int beats_per_bar;
+
   *MusicLine lines;
 }
