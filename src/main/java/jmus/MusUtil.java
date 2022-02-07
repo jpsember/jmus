@@ -125,7 +125,10 @@ public final class MusUtil {
   }
 
   public static Scale scale(String name) {
-    return scaleMap().scales().get(name);
+    Scale s = scaleMap().scales().get(name);
+    if (s == null)
+      throw badArg("Can't find scale:", quote(name));
+    return s;
   }
 
   public static ScaleMap scaleMap() {

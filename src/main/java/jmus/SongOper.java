@@ -40,10 +40,10 @@ import jmus.gen.Scale;
 import jmus.gen.Song;
 import js.app.AppOper;
 import js.data.DataUtil;
+import js.data.IntArray;
 import js.file.Files;
 import js.geometry.IPoint;
 import js.graphics.Paint;
-import js.json.JSList;
 
 public class SongOper extends AppOper {
 
@@ -99,28 +99,6 @@ public class SongOper extends AppOper {
       .build();
 
   private void experiment() {
-    //
-    //    
-    //    if (true) {
-    //      int range = 6;
-    //      int[] f = new int[range];
-    //      int pop = 0;
-    //      float m = 1.7f;
-    //      float b = 0.15f;
-    //      while (pop < 1000) {
-    //        float q = (random().nextFloat() * random().nextFloat() - b) * m;
-    //        int k = (int) Math.floor(q * range);
-    //        if (k < 0 || k >= range)
-    //          continue;
-    //        pop++;
-    //        f[k]++;
-    //      }
-    //      pr("range:", range, "m:", m, "b:", b);
-    //      for (int i = 0; i < range; i++)
-    //        pr(i, f[i]);
-    //
-    //      return;
-    //    }
 
     PagePlotter p = new PagePlotter();
     Graphics2D g = p.graphics();
@@ -142,14 +120,9 @@ public class SongOper extends AppOper {
 
     y += ysep * 1.5;
 
-    final int SCALE_ROWS = 8;
-
     List<Scale> scales = buildScaleList();
-    int[] scaleInd = biasedSample(scales.size(), SCALE_ROWS);
-    // pr("biased sample:", JSList.with(scaleInd));
-    for (int scaleNum : scaleInd) {
-      //    for (Scale scale : buildScaleList()) {
-      Scale scale = scales.get(scaleNum);
+
+    for (Scale scale : scales) {
       String n = scale.name();
       n = n.replace('-', ' ');
       n = DataUtil.capitalizeFirst(n) + ":";
@@ -173,7 +146,13 @@ public class SongOper extends AppOper {
 
   private List<Scale> buildScaleList() {
     List<Scale> scales = arrayList();
-    scales.addAll(scaleMap().scales().values());
+    String scaleExp = mConfig.scales();
+    if (nullOrEmpty(scaleExp)) {
+      scaleExp = "c g f e-flat";
+    }
+    for (String s : split(scaleExp, ' ')) {
+      scales.add(scale(s));
+    }
     return scales;
   }
 
@@ -195,34 +174,25 @@ public class SongOper extends AppOper {
   private List<Chord> randomChords(int count) {
     List<Chord> chords = arrayList();
 
+    int[] ci = biasedSample(chordNumbers().length, count);
+
     for (int i = 0; i < count; i++) {
 
       Chord.Builder c;
       int mainChord = -1;
 
-      // Don't reuse a main chord if it was used recently
-      //
-      final int uniqueRecentCount = 4;
-      while (true) {
-        mainChord = random().nextInt(7) + 1;
-        boolean found = false;
-        for (int k = Math.max(0, chords.size() - uniqueRecentCount); k < chords.size(); k++) {
-          if (chords.get(k).number() == mainChord) {
-            found = true;
-            break;
-          }
-        }
-        if (!found)
-          break;
-      }
+      mainChord = chordNumbers()[ci[i]];
 
-      if (random().nextInt(4) == 2) {
-        int auxChord;
-        do {
-          auxChord = random().nextInt(7) + 1;
-        } while (auxChord == mainChord);
-        c = chord(mainChord, auxChord);
-      } else
+      todo("add split chords");
+      //      
+      //      if (false && random().nextInt(4) == 2) {
+      //        int auxChord;
+      //        do {
+      //          auxChord = random().nextInt(7) + 1;
+      //        } while (auxChord == mainChord);
+      //        c = chord(mainChord, auxChord);
+      //      } else
+      //        
         c = chord(mainChord);
       chords.add(c.build());
     }
@@ -256,4 +226,20 @@ public class SongOper extends AppOper {
   }
 
   private Random mRand;
+
+  private int[] chordNumbers() {
+    if (mChordNumbers == null) {
+      String chordExp = mConfig.chordNumbers();
+      chordExp = ifNullOrEmpty(chordExp, "4 5 6 2 7 3 1");
+      List<String> expr = split(chordExp, ' ');
+      IntArray.Builder cn = IntArray.newBuilder();
+      for (String x : expr) {
+        cn.add(Integer.parseInt(x));
+        mChordNumbers = cn.array();
+      }
+    }
+    return mChordNumbers;
+  }
+
+  private int[] mChordNumbers;
 }

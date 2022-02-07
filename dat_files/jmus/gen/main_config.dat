@@ -7,4 +7,6 @@ fields {
   int seed;
 
   string scales;
+
+  string chord_numbers;
 }
