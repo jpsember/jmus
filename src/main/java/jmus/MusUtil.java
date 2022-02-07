@@ -133,16 +133,8 @@ public final class MusUtil {
 
   public static ScaleMap scaleMap() {
     if (sScaleMap == null) {
-      String content = Files.readString(MusUtil.class, "scales.json");
-      
-      ScaleMap m = Files.parseAbstractDataOpt(ScaleMap.DEFAULT_INSTANCE, new JSMap(content));
-      ScaleMap.Builder b = ScaleMap.newBuilder();
-      for (String name : m.scales().keySet()) {
-        Scale s = m.scales().get(name);
-        b.scales().put(name, s.toBuilder().name(name).build());
-      }
-      sScaleMap = b.build();
-      todo("add other scales");
+      JSMap jsMap = new JSMap(Files.readString(MusUtil.class, "scales.json"));
+      sScaleMap = Files.parseAbstractData(ScaleMap.DEFAULT_INSTANCE, jsMap);
     }
     return sScaleMap;
   }
