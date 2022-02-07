@@ -39,7 +39,6 @@ import jmus.gen.SongConfig;
 import jmus.gen.Scale;
 import jmus.gen.Song;
 import js.app.AppOper;
-import js.data.DataUtil;
 import js.data.IntArray;
 import js.file.Files;
 import js.geometry.IPoint;
@@ -74,7 +73,8 @@ public class SongOper extends AppOper {
       return;
     }
 
-    if (Files.empty(mConfig.input())) {
+    if (Files.empty(mConfig.input()) // || alert("always") //
+    ) {
       generateQuiz();
       return;
     }
@@ -91,7 +91,8 @@ public class SongOper extends AppOper {
       scale = scale(mConfig.scale());
 
     PagePlotter p = new PagePlotter();
-    p.render(song, scale, mConfig.style());
+    p.setKey(scale);
+    p.render(song, mConfig.style());
     File outFile = mConfig.output();
     if (Files.empty(outFile))
       outFile = mSourceFile;
@@ -132,6 +133,7 @@ public class SongOper extends AppOper {
       drawBarBetweenSets(g, style, y);
 
       int x = PAGE_CONTENT.x + indent;
+      p.setKey(null);
       plotChords(p, chords, null, style, new IPoint(x, y), xAdvance);
 
       y += ysep * 1.2;
@@ -152,10 +154,7 @@ public class SongOper extends AppOper {
           fill(g, x0, y0, x1 - x0, y1 - y0);
         }
 
-        String n = scale.name();
-        n = n.replace('-', ' ');
-        n = DataUtil.capitalizeFirst(n) + ":";
-
+        String n = symbolicName(scale);
         {
           PAINT_SCALE.apply(g);
           FontMetrics f = g.getFontMetrics();
@@ -163,6 +162,7 @@ public class SongOper extends AppOper {
           g.drawString(n, tx, y + f.getAscent());
         }
 
+        p.setKey(scale);
         plotChords(p, chords, scale, style, new IPoint(x, y), xAdvance);
         y += ysep;
       }
@@ -206,10 +206,11 @@ public class SongOper extends AppOper {
 
   private void plotChords(PagePlotter p, List<Chord> chords, Scale scale, Style style, IPoint loc,
       int xAdvance) {
+    p.setKey(scale);
     int x = loc.x;
     int y = loc.y;
     for (Chord c : chords) {
-      p.plotChord(c, scale, style, new IPoint(x, y));
+      p.plotChord(c, style, new IPoint(x, y));
       x += xAdvance;
     }
   }

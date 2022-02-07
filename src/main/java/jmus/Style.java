@@ -60,7 +60,9 @@ public final class Style {
       sStyles.add(new Style( //
           ptChord.toBuilder().font(FONT_PLAIN, 1.2f), //
           ptChordSmall.toBuilder().font(FONT_PLAIN, 0.8f), //
-          ptFrame.toBuilder().width(2).build(), 24, 32, 2, 10, 7, 9, 20, //
+          ptFrame.toBuilder().width(2).build(), //
+          30, // 
+          32, 2, 10, 7, 9, 20, //
           ptTitle, ptSubtitle, ptText, ptSmallText, 14));
 
       sStyles.add(new Style(ptChord, ptChordSmall, ptFrame, 35, 48, 3, 15, 10, 12, 34, ptTitle, ptSubtitle,

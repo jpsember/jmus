@@ -24,16 +24,17 @@ import js.geometry.IPoint;
 import js.geometry.Matrix;
 import js.graphics.ImgUtil;
 import js.graphics.Paint;
+import js.parsing.MacroParser;
+import js.parsing.MacroParser.Mapper;
 
 import static jmus.MusUtil.*;
 
 /**
  * For plotting a song into a png
  */
-public final class PagePlotter extends BaseObject {
+public final class PagePlotter extends BaseObject implements Mapper {
 
   public PagePlotter() {
-    loadTools();
     BufferedImage img = mImage = ImgUtil.build(PAGE_SIZE.scaledBy(DOTS_PER_INCH),
         ImgUtil.PREFERRED_IMAGE_TYPE_COLOR);
     Graphics2D g = mGraphics = img.createGraphics();
@@ -42,6 +43,10 @@ public final class PagePlotter extends BaseObject {
     g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
     g.setTransform(Matrix.getScale(DOTS_PER_INCH).toAffineTransform());
     PAINT_NORMAL.apply(g);
+  }
+
+  public void setKey(Scale scale) {
+    mKey = scale;
   }
 
   private static final Color BAR_COLOR = new Color(128, 128, 128);
@@ -58,10 +63,7 @@ public final class PagePlotter extends BaseObject {
     ImgUtil.writeImage(Files.S, mImage, outputFile);
   }
 
-  public void render(Song song, Scale scale, int styleNumber) {
-    todo(
-        "why does setting stroke width(1) have different effect than default when rendering lines with CHORD_PAINT_SMALL?");
-
+  public void render(Song song, int styleNumber) {
     Style style = style(styleNumber);
 
     Graphics2D g = graphics();
@@ -71,8 +73,18 @@ public final class PagePlotter extends BaseObject {
 
     int y = PAGE_CONTENT.y;
     for (MusicSection section : song.sections()) {
+      switch (section.type()) {
+      default:
+        throw notSupported("unsupported section type:", section);
 
-      if (section.type() != 0) {
+      case T_KEY:
+        mKey = scale(section.text());
+        break;
+
+      case T_TITLE:
+      case T_SUBTITLE:
+      case T_TEXT:
+      case T_SMALLTEXT: {
         IPoint plotLoc;
         boolean sameLine = section.sameLine() && pastBarPt != null;
         if (sameLine)
@@ -83,70 +95,68 @@ public final class PagePlotter extends BaseObject {
         int adv = renderString(section.type(), section.text(), style, plotLoc, sameLine);
         if (!sameLine)
           y += adv;
-        continue;
       }
-
-      List<List<MusicLine>> barLists = arrayList();
-      int[] maxChordsPerBar = new int[50];
-
-      // Determine chord sets within each bar, and the maximum size of each such set
-      {
-        for (MusicLine line : section.lines()) {
-          List<MusicLine> chordsWithinBarsList = extractChordsForBars(line, section.beatsPerBar());
-          barLists.add(chordsWithinBarsList);
-          int j = -1;
-          for (MusicLine m : chordsWithinBarsList) {
-            j++;
-            maxChordsPerBar[j] = Math.max(maxChordsPerBar[j], m.chords().size());
-          }
-        }
-      }
-
-      int barHeight = style.chordHeight + 1 * style.barPadY;
-
-      // Loop over each music line in the song
-
-      for (List<MusicLine> barList : barLists) {
-
-        // Loop over each set of chords in each bar
-
-        int barNum = -1;
-        int barX = PAGE_CONTENT.x;
-
-        for (MusicLine bars : barList) {
-          barNum++;
-
-          int barWidth = (style.meanChordWidthPixels + style.chordPadX) * maxChordsPerBar[barNum]
-              + style.chordPadX;
-          style.paintBarFrame.apply(graphics());
-          rect(graphics(), barX, y, barWidth, barHeight);
-
-          int cx = barX + style.barPadX;
-          int cy = y + style.barPadY;
-
-          // Loop over each chord in this bar
-
-          for (Chord chord : bars.chords()) {
-            cx += plotChord(chord, scale, style, new IPoint(cx, cy));
-          }
-
-          barX += barWidth;
-        }
-        y += barHeight;
-        pastBarPt = new IPoint(barX, y);
-
-        if (false && alert("stopping after single music line"))
-          break;
-      }
-
-      y += style.spacingBetweenSections;
-
-      if (false && alert("stopping after single section"))
         break;
+
+      case 0: {
+        List<List<MusicLine>> barLists = arrayList();
+        int[] maxChordsPerBar = new int[50];
+
+        // Determine chord sets within each bar, and the maximum size of each such set
+        {
+          for (MusicLine line : section.lines()) {
+            List<MusicLine> chordsWithinBarsList = extractChordsForBars(line, section.beatsPerBar());
+            barLists.add(chordsWithinBarsList);
+            int j = -1;
+            for (MusicLine m : chordsWithinBarsList) {
+              j++;
+              maxChordsPerBar[j] = Math.max(maxChordsPerBar[j], m.chords().size());
+            }
+          }
+        }
+
+        int barHeight = style.chordHeight + 1 * style.barPadY;
+
+        // Loop over each music line in the song
+
+        for (List<MusicLine> barList : barLists) {
+
+          // Loop over each set of chords in each bar
+
+          int barNum = -1;
+          int barX = PAGE_CONTENT.x;
+
+          for (MusicLine bars : barList) {
+            barNum++;
+
+            int barWidth = (style.meanChordWidthPixels + style.chordPadX) * maxChordsPerBar[barNum]
+                + style.chordPadX;
+            style.paintBarFrame.apply(graphics());
+            rect(graphics(), barX, y, barWidth, barHeight);
+
+            int cx = barX + style.barPadX;
+            int cy = y + style.barPadY;
+
+            // Loop over each chord in this bar
+
+            for (Chord chord : bars.chords()) {
+              cx += plotChord(chord, style, new IPoint(cx, cy));
+            }
+
+            barX += barWidth;
+          }
+          y += barHeight;
+          pastBarPt = new IPoint(barX, y);
+        }
+
+        y += style.spacingBetweenSections;
+      }
+        break;
+      }
     }
   }
 
-  public int plotChord(Chord chord, Scale scale, Style style, IPoint loc) {
+  public int plotChord(Chord chord, Style style, IPoint loc) {
     Paint chordPaint = style.paintChord;
     int yAdjust = 0;
 
@@ -161,10 +171,10 @@ public final class PagePlotter extends BaseObject {
 
     mTextEntries.clear();
 
-    tx().text(renderChord(chord, scale, null, null).toString());
+    tx().text(renderChord(chord, mKey, null, null).toString());
     if (chord.slashChord() != null) {
       tx().text("~dash");
-      tx().text(renderChord(chord.slashChord(), scale, null, null).toString());
+      tx().text(renderChord(chord.slashChord(), mKey, null, null).toString());
     }
 
     int width = renderTextEntries(graphics(), style, mTextEntries, loc.sumWith(0, yAdjust));
@@ -206,7 +216,7 @@ public final class PagePlotter extends BaseObject {
     return b;
   }
 
- public int renderString(int type, String text, Style style, IPoint loc, boolean plotAbove) {
+  public int renderString(int type, String text, Style style, IPoint loc, boolean plotAbove) {
     Graphics2D g = graphics();
     Paint pt;
     boolean center = false;
@@ -232,6 +242,7 @@ public final class PagePlotter extends BaseObject {
     pt.apply(graphics());
     FontMetrics f = g.getFontMetrics();
 
+    text = performMacroSub(text);
     int x = loc.x;
     int y = loc.y;
     if (!plotAbove)
@@ -243,6 +254,15 @@ public final class PagePlotter extends BaseObject {
     g.drawString(text, x, y);
 
     return f.getHeight() + style.spacingBetweenSections / 3;
+  }
+
+  private String performMacroSub(String text) {
+    if (!text.contains("[!"))
+      return text;
+    MacroParser p = new MacroParser();
+    p.withMapper(this);
+    p.withTemplate(text);
+    return p.content();
   }
 
   private static int renderTextEntries(Graphics2D g, Style style, Collection<TextEntry.Builder> textEntries,
@@ -262,9 +282,10 @@ public final class PagePlotter extends BaseObject {
 
         if (tx.text().startsWith("~")) {
           rowHeight = style.dashHeight;
-        } else
+        } else {
+          todo("have custom renderer to space things tighter");
           tx.renderWidth(f.stringWidth(tx.text()));
-
+        }
         maxWidth = Math.max(maxWidth, tx.renderWidth());
         y += rowHeight;
         heightTotal = y - f.getLeading();
@@ -284,7 +305,7 @@ public final class PagePlotter extends BaseObject {
         default:
           throw notSupported("unknown text:", tx);
         case "dash": {
-           int y0 = py + style.dashOffset;
+          int y0 = py + style.dashOffset;
           line(g, x0, y0, x1, y0);
         }
           break;
@@ -302,6 +323,17 @@ public final class PagePlotter extends BaseObject {
     return maxWidth;
   }
 
+  @Override
+  public String textForKey(String key) {
+    todo("not sure any of this macro substitution is necessary");
+    switch (key) {
+    case "key_symbol":
+      return symbolicName(mKey);
+    }
+    return null;
+  }
+
+  private Scale mKey;
   private BufferedImage mImage;
   private Graphics2D mGraphics;
   private List<TextEntry.Builder> mTextEntries = arrayList();

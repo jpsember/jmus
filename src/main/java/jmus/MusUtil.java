@@ -125,6 +125,7 @@ public final class MusUtil {
   }
 
   public static Scale scale(String name) {
+    todo("rename this 'key'?");
     Scale s = scaleMap().scales().get(name);
     if (s == null)
       throw badArg("Can't find scale:", quote(name));
@@ -163,7 +164,8 @@ public final class MusUtil {
   private static DFA mDFA;
 
   public static final int T_WS = 0, T_CR = 1, T_STRING = 2, T_CHORD = 3, T_FWD_SLASH = 4, T_PAROP = 5,
-      T_PARCL = 6, T_PERIOD = 7, T_TITLE = 8, T_SUBTITLE = 9, T_TEXT = 10, T_SMALLTEXT = 11, T_BEATS = 12;
+      T_PARCL = 6, T_PERIOD = 7, T_TITLE = 8, T_SUBTITLE = 9, T_TEXT = 10, T_SMALLTEXT = 11, T_BEATS = 12,
+      T_KEY = 13;
 
   // ------------------------------------------------------------------
   // Rendering
@@ -195,7 +197,7 @@ public final class MusUtil {
   // (Maybe there is some way to improve the spacing so other fonts can be used as well?)
   // (A custom drawString that shifts some chars over...)
 
-  public static final String FONT_NAME = "Courier" ; //"Dialog";
+  public static final String FONT_NAME = "Courier"; 
   public static final Font FONT_PLAIN = new Font(FONT_NAME, Font.PLAIN, 18);
   public static final Font FONT_BOLD = new Font(FONT_NAME, Font.BOLD, 18);
   public static final Paint PAINT_NORMAL = Paint.newBuilder().font(FONT_PLAIN, 1f).color(Color.black)
@@ -287,6 +289,11 @@ public final class MusUtil {
 
   public static Chord.Builder chord(int number, int baseNumber) {
     return chord(number).slashChord(chord(baseNumber));
+  }
+
+  public static String symbolicName(Scale key) {
+    checkState(key != null, "no key defined");
+    return key.keys().get(0);
   }
 
 }

@@ -41,6 +41,16 @@ public class SongParser extends BaseObject {
         continue;
       }
 
+      if (readIf(T_KEY)) {
+        String keyString = readAndParseString();
+        flushMusicSection();
+
+        song().sections().add(MusicSection.newBuilder()//
+            .type(T_KEY).text(keyString) //
+            .build());
+        continue;
+      }
+
       if (peekIf(T_TITLE) || peekIf(T_SUBTITLE) || peekIf(T_TEXT) || peekIf(T_SMALLTEXT)) {
         boolean flushed = flushMusicLine();
         flushMusicSection();
@@ -77,6 +87,11 @@ public class SongParser extends BaseObject {
     flushMusicLine();
     flushMusicSection();
     return song().build();
+  }
+
+  private String readAndParseString() {
+    String s = mScanner.read(T_STRING).text();
+    return parseStringText(s);
   }
 
   private String parseStringText(String s) {
