@@ -24,15 +24,13 @@ import js.geometry.IPoint;
 import js.geometry.Matrix;
 import js.graphics.ImgUtil;
 import js.graphics.Paint;
-import js.parsing.MacroParser;
-import js.parsing.MacroParser.Mapper;
 
 import static jmus.MusUtil.*;
 
 /**
  * For plotting a song into a png
  */
-public final class PagePlotter extends BaseObject implements Mapper {
+public final class PagePlotter extends BaseObject  {
 
   public PagePlotter() {
     BufferedImage img = mImage = ImgUtil.build(PAGE_SIZE.scaledBy(DOTS_PER_INCH),
@@ -242,7 +240,6 @@ public final class PagePlotter extends BaseObject implements Mapper {
     pt.apply(graphics());
     FontMetrics f = g.getFontMetrics();
 
-    text = performMacroSub(text);
     int x = loc.x;
     int y = loc.y;
     if (!plotAbove)
@@ -254,15 +251,6 @@ public final class PagePlotter extends BaseObject implements Mapper {
     g.drawString(text, x, y);
 
     return f.getHeight() + style.spacingBetweenSections / 3;
-  }
-
-  private String performMacroSub(String text) {
-    if (!text.contains("[!"))
-      return text;
-    MacroParser p = new MacroParser();
-    p.withMapper(this);
-    p.withTemplate(text);
-    return p.content();
   }
 
   private static int renderTextEntries(Graphics2D g, Style style, Collection<TextEntry.Builder> textEntries,
@@ -321,16 +309,6 @@ public final class PagePlotter extends BaseObject implements Mapper {
       }
     }
     return maxWidth;
-  }
-
-  @Override
-  public String textForKey(String key) {
-    todo("not sure any of this macro substitution is necessary");
-    switch (key) {
-    case "key_symbol":
-      return symbolicName(mKey);
-    }
-    return null;
   }
 
   private Scale mKey;
