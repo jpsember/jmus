@@ -195,7 +195,7 @@ public final class MusUtil {
   // (Maybe there is some way to improve the spacing so other fonts can be used as well?)
   // (A custom drawString that shifts some chars over...)
 
-  public static final String FONT_NAME = "Dialog";
+  public static final String FONT_NAME = "Courier" ; //"Dialog";
   public static final Font FONT_PLAIN = new Font(FONT_NAME, Font.PLAIN, 18);
   public static final Font FONT_BOLD = new Font(FONT_NAME, Font.BOLD, 18);
   public static final Paint PAINT_NORMAL = Paint.newBuilder().font(FONT_PLAIN, 1f).color(Color.black)

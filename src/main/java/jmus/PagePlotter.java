@@ -284,7 +284,7 @@ public final class PagePlotter extends BaseObject {
         default:
           throw notSupported("unknown text:", tx);
         case "dash": {
-          int y0 = py + style.chordHeight / 2;
+           int y0 = py + style.dashOffset;
           line(g, x0, y0, x1, y0);
         }
           break;

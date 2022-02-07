@@ -66,6 +66,14 @@ public class SongOper extends AppOper {
   public void perform() {
     mConfig = config();
 
+    if (false && alert("rendering fonts")) {
+      PagePlotter p = new PagePlotter();
+      renderFonts(p.graphics(), 194);
+      File outFile = Files.getDesktopFile("fonts194.png");
+      p.generateOutputFile(outFile);
+      return;
+    }
+
     if (Files.empty(mConfig.input())) {
       generateQuiz();
       return;
@@ -89,16 +97,18 @@ public class SongOper extends AppOper {
       outFile = mSourceFile;
     outFile = Files.setExtension(outFile, "png");
     p.generateOutputFile(outFile);
-    pr("...done");
   }
 
   private MainConfig mConfig;
   private File mSourceFile;
 
-  private static final Paint PAINT_SCALE = Paint.newBuilder().color(128, 128, 128).font(FONT_BOLD, 1.2f)
+  private static final Paint PAINT_SCALE = Paint.newBuilder().color(128, 128, 128).font(FONT_PLAIN, 0.8f)
       .build();
 
   private static final Paint PAINT_SEP = Paint.newBuilder().color(128, 128, 128).width(3).build();
+
+  private static final Paint PAINT_ROW_BGND0 = Paint.newBuilder().color(210, 210, 210).build();
+  private static final Paint PAINT_ROW_BGND1 = Paint.newBuilder().color(230, 230, 230).build();
 
   private void generateQuiz() {
 
@@ -120,7 +130,7 @@ public class SongOper extends AppOper {
       int chordsPerRow = 16;
       List<Chord> chords = randomChords(chordsPerRow);
 
-      drawChunkSep(g, y - style.spacingBetweenSections / 2);
+      drawChunkSep(g, style, y);
 
       int x = PAGE_CONTENT.x + indent;
       plotChords(p, chords, null, style, new IPoint(x, y), xAdvance);
@@ -129,7 +139,20 @@ public class SongOper extends AppOper {
 
       List<Scale> scales = buildScaleList();
 
+      int x0 = x - (int) (style.barPadX * 1.6);
+      int x1 = x + xAdvance * chords.size();
+
+      int rowNum = -1;
       for (Scale scale : scales) {
+        rowNum++;
+        {
+          int y0 = y - style.chordPadX;
+          int y1 = y0 + ysep;
+          Paint bgndPaint = ((rowNum & 1) == 0) ? PAINT_ROW_BGND0 : PAINT_ROW_BGND1;
+          bgndPaint.apply(g);
+          fill(g, x0, y0, x1 - x0, y1 - y0);
+        }
+
         String n = scale.name();
         n = n.replace('-', ' ');
         n = DataUtil.capitalizeFirst(n) + ":";
@@ -137,7 +160,7 @@ public class SongOper extends AppOper {
         {
           PAINT_SCALE.apply(g);
           FontMetrics f = g.getFontMetrics();
-          int tx = x - f.stringWidth(n) - style.chordPadX * 3;
+          int tx = x - f.stringWidth(n) - style.chordPadX * 2;
           g.drawString(n, tx, y + f.getAscent());
         }
 
@@ -150,15 +173,16 @@ public class SongOper extends AppOper {
       if (y + chunkHeight > PAGE_CONTENT.endY())
         break;
     }
-    drawChunkSep(g, y - style.spacingBetweenSections / 2);
+
+    drawChunkSep(g, style, y);
 
     File outFile = new File("samples/experiment.png");
     p.generateOutputFile(outFile);
-    pr("...done");
   }
 
-  private void drawChunkSep(Graphics2D g, int y) {
+  private void drawChunkSep(Graphics2D g, Style style, int y) {
     PAINT_SEP.apply(g);
+    y -= style.spacingBetweenSections * 0.7f;
     line(g, PAGE_CONTENT.x, y, PAGE_CONTENT.endX(), y);
   }
 
@@ -199,17 +223,14 @@ public class SongOper extends AppOper {
 
         mainChord = chordNumbers()[ci[i]];
 
-        todo("add split chords");
-        //      
-        //      if (false && random().nextInt(4) == 2) {
-        //        int auxChord;
-        //        do {
-        //          auxChord = random().nextInt(7) + 1;
-        //        } while (auxChord == mainChord);
-        //        c = chord(mainChord, auxChord);
-        //      } else
-        //        
-        c = chord(mainChord);
+        if (random().nextInt(30) < 10) {
+          int auxChord;
+          do {
+            auxChord = random().nextInt(7) + 1;
+          } while (auxChord == mainChord);
+          c = chord(mainChord, auxChord);
+        } else
+          c = chord(mainChord);
         chords.add(c.build());
       }
 

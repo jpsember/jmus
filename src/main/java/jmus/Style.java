@@ -22,9 +22,11 @@ public final class Style {
   final Paint paintSubtitle;
   final Paint paintText;
   final Paint paintSmallText;
+  final int dashOffset;
 
   Style(Paint chord, Paint chordSmall, Paint barFrame, int meanChordWidth, int chordHt, int dashHt, int barpx,
-      int barpy, int chordpx, int spaceBetwSect, Paint title, Paint subtitle, Paint text, Paint smallText) {
+      int barpy, int chordpx, int spaceBetwSect, Paint title, Paint subtitle, Paint text, Paint smallText,
+      int dashOff) {
     paintChord = chord.build();
     paintChordSmall = chordSmall.build();
     paintBarFrame = barFrame.build();
@@ -39,6 +41,7 @@ public final class Style {
     paintSubtitle = subtitle.build();
     paintText = text.build();
     paintSmallText = smallText.build();
+    dashOffset = dashOff;
   }
 
   private static final Paint ptChord = PAINT_NORMAL.toBuilder().font(FONT_PLAIN, 1.8f).build();
@@ -56,12 +59,12 @@ public final class Style {
 
       sStyles.add(new Style( //
           ptChord.toBuilder().font(FONT_PLAIN, 1.2f), //
-          ptChordSmall.toBuilder().font(FONT_PLAIN, 0.7f), //
+          ptChordSmall.toBuilder().font(FONT_PLAIN, 0.8f), //
           ptFrame.toBuilder().width(2).build(), 24, 32, 2, 10, 7, 9, 20, //
-          ptTitle, ptSubtitle, ptText, ptSmallText));
+          ptTitle, ptSubtitle, ptText, ptSmallText, 14));
 
       sStyles.add(new Style(ptChord, ptChordSmall, ptFrame, 35, 48, 3, 15, 10, 12, 34, ptTitle, ptSubtitle,
-          ptText, ptSmallText));
+          ptText, ptSmallText, 10));
     }
     return sStyles;
   }
