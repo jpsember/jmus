@@ -67,7 +67,7 @@ public class SongOper extends AppOper {
     mConfig = config();
 
     if (Files.empty(mConfig.input())) {
-      experiment();
+      generateQuiz();
       return;
     }
 
@@ -100,7 +100,7 @@ public class SongOper extends AppOper {
 
   private static final Paint PAINT_SEP = Paint.newBuilder().color(128, 128, 128).width(3).build();
 
-  private void experiment() {
+  private void generateQuiz() {
 
     PagePlotter p = new PagePlotter();
     Graphics2D g = p.graphics();
@@ -189,30 +189,68 @@ public class SongOper extends AppOper {
   private List<Chord> randomChords(int count) {
     List<Chord> chords = arrayList();
 
-    int[] ci = biasedSample(chordNumbers().length, count);
+    while (chords.size() < count) {
 
-    todo("try to shuffle or replace if duplicate chords in sequence");
-    for (int i = 0; i < count; i++) {
+      int[] ci = biasedSample(chordNumbers().length, count);
 
-      Chord.Builder c;
-      int mainChord = -1;
+      for (int i = 0; chords.size() < count; i++) {
+        Chord.Builder c;
+        int mainChord = -1;
 
-      mainChord = chordNumbers()[ci[i]];
+        mainChord = chordNumbers()[ci[i]];
 
-      todo("add split chords");
-      //      
-      //      if (false && random().nextInt(4) == 2) {
-      //        int auxChord;
-      //        do {
-      //          auxChord = random().nextInt(7) + 1;
-      //        } while (auxChord == mainChord);
-      //        c = chord(mainChord, auxChord);
-      //      } else
-      //        
-      c = chord(mainChord);
-      chords.add(c.build());
+        todo("add split chords");
+        //      
+        //      if (false && random().nextInt(4) == 2) {
+        //        int auxChord;
+        //        do {
+        //          auxChord = random().nextInt(7) + 1;
+        //        } while (auxChord == mainChord);
+        //        c = chord(mainChord, auxChord);
+        //      } else
+        //        
+        c = chord(mainChord);
+        chords.add(c.build());
+      }
+
+      fixAdjacentPairs(chords);
     }
     return chords;
+  }
+
+  /**
+   * Swap chords to try to eliminate adjacent pairs; remove chords from list if
+   * necessary
+   */
+  private void fixAdjacentPairs(List<Chord> chords) {
+    int discardPoint = -1;
+    for (int j = 0; j < chords.size() - 1; j++) {
+      Chord cj = chords.get(j);
+      int k = j + 1;
+      while (k < chords.size()) {
+        Chord ck = chords.get(k);
+        if (cj.number() != ck.number())
+          break;
+        k++;
+      }
+      if (k == j + 1)
+        continue;
+      if (k == chords.size()) {
+        discardPoint = j + 1;
+        break;
+      }
+
+      {
+        Chord ca = chords.get(j + 1);
+        Chord cb = chords.get(k);
+        chords.set(j + 1, cb);
+        chords.set(k, ca);
+      }
+    }
+
+    if (discardPoint >= 0) {
+      removeAllButFirstN(chords, discardPoint);
+    }
 
   }
 
