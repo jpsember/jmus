@@ -134,6 +134,7 @@ public final class MusUtil {
   public static ScaleMap scaleMap() {
     if (sScaleMap == null) {
       String content = Files.readString(MusUtil.class, "scales.json");
+      
       ScaleMap m = Files.parseAbstractDataOpt(ScaleMap.DEFAULT_INSTANCE, new JSMap(content));
       ScaleMap.Builder b = ScaleMap.newBuilder();
       for (String name : m.scales().keySet()) {
