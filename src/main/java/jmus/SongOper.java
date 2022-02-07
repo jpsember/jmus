@@ -26,6 +26,8 @@ package jmus;
 
 import static js.base.Tools.*;
 
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
 import java.io.File;
 import java.util.List;
 import java.util.Random;
@@ -37,8 +39,11 @@ import jmus.gen.MainConfig;
 import jmus.gen.Scale;
 import jmus.gen.Song;
 import js.app.AppOper;
+import js.data.DataUtil;
 import js.file.Files;
 import js.geometry.IPoint;
+import js.graphics.Paint;
+import js.json.JSList;
 
 public class SongOper extends AppOper {
 
@@ -90,9 +95,36 @@ public class SongOper extends AppOper {
   private MainConfig mConfig;
   private File mSourceFile;
 
+  private static final Paint PAINT_SCALE = Paint.newBuilder().color(128, 128, 128).font(FONT_BOLD, 1.2f)
+      .build();
+
   private void experiment() {
+    //
+    //    
+    //    if (true) {
+    //      int range = 6;
+    //      int[] f = new int[range];
+    //      int pop = 0;
+    //      float m = 1.7f;
+    //      float b = 0.15f;
+    //      while (pop < 1000) {
+    //        float q = (random().nextFloat() * random().nextFloat() - b) * m;
+    //        int k = (int) Math.floor(q * range);
+    //        if (k < 0 || k >= range)
+    //          continue;
+    //        pop++;
+    //        f[k]++;
+    //      }
+    //      pr("range:", range, "m:", m, "b:", b);
+    //      for (int i = 0; i < range; i++)
+    //        pr(i, f[i]);
+    //
+    //      return;
+    //    }
+
     PagePlotter p = new PagePlotter();
-    rect(p.graphics(), PAGE_CONTENT);
+    Graphics2D g = p.graphics();
+    //rect(g, PAGE_CONTENT);
 
     Style style = style(0);
     int xAdvance = style.meanChordWidthPixels + style.chordPadX + 8;
@@ -110,9 +142,27 @@ public class SongOper extends AppOper {
 
     y += ysep * 1.5;
 
-    for (Scale scale : buildScaleList()) {
+    final int SCALE_ROWS = 8;
 
-      //  Scale scale = scale("b-flat");
+    List<Scale> scales = buildScaleList();
+    int[] scaleInd = biasedSample(scales.size(), SCALE_ROWS);
+    // pr("biased sample:", JSList.with(scaleInd));
+    for (int scaleNum : scaleInd) {
+      //    for (Scale scale : buildScaleList()) {
+      Scale scale = scales.get(scaleNum);
+      String n = scale.name();
+      n = n.replace('-', ' ');
+      n = DataUtil.capitalizeFirst(n) + ":";
+
+      {
+        PAINT_SCALE.apply(g);
+        FontMetrics f = g.getFontMetrics();
+        int tx = x - f.stringWidth(n) - style.chordPadX * 2;
+
+        g.drawString(n, tx, y + f.getAscent());
+
+      }
+
       plotChords(p, chords, scale, style, new IPoint(x, y), xAdvance);
       y += ysep;
     }
@@ -133,11 +183,15 @@ public class SongOper extends AppOper {
     int y = loc.y;
     for (Chord c : chords) {
       p.plotChord(c, scale, style, new IPoint(x, y));
-      //rect(p.graphics(), new IRect(x, y, xAdvance - 2, style.chordHeight));
       x += xAdvance;
     }
   }
 
+  //
+  //  private int randChord() {
+  //  
+  //  }
+  //  
   private List<Chord> randomChords(int count) {
     List<Chord> chords = arrayList();
 
@@ -174,6 +228,21 @@ public class SongOper extends AppOper {
     }
     return chords;
 
+  }
+
+  private int[] biasedSample(int range, int pop) {
+    int[] result = new int[pop];
+    float scale = 1.7f;
+    final float shift = 0.15f;
+    int sum = 0;
+    while (sum < pop) {
+      //float q = (random().nextFloat() * random().nextFloat() - shift) * scale;
+      int k = (int) Math.floor((random().nextFloat() * random().nextFloat() - shift) * scale * range);
+      if (k < 0 || k >= range)
+        continue;
+      result[sum++] = k;
+    }
+    return result;
   }
 
   private Random random() {

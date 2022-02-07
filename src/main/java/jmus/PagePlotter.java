@@ -206,7 +206,7 @@ public final class PagePlotter extends BaseObject {
     return b;
   }
 
-  private int renderString(int type, String text, Style style, IPoint loc, boolean plotAbove) {
+ public int renderString(int type, String text, Style style, IPoint loc, boolean plotAbove) {
     Graphics2D g = graphics();
     Paint pt;
     boolean center = false;
