@@ -35,7 +35,7 @@ import java.util.Random;
 import static jmus.MusUtil.*;
 
 import jmus.gen.Chord;
-import jmus.gen.MainConfig;
+import jmus.gen.SongConfig;
 import jmus.gen.Scale;
 import jmus.gen.Song;
 import js.app.AppOper;
@@ -58,8 +58,8 @@ public class SongOper extends AppOper {
   }
 
   @Override
-  public MainConfig defaultArgs() {
-    return MainConfig.DEFAULT_INSTANCE;
+  public SongConfig defaultArgs() {
+    return SongConfig.DEFAULT_INSTANCE;
   }
 
   @Override
@@ -99,16 +99,13 @@ public class SongOper extends AppOper {
     p.generateOutputFile(outFile);
   }
 
-  private MainConfig mConfig;
-  private File mSourceFile;
-
   private static final Paint PAINT_SCALE = Paint.newBuilder().color(128, 128, 128).font(FONT_PLAIN, 0.8f)
       .build();
 
   private static final Paint PAINT_SEP = Paint.newBuilder().color(128, 128, 128).width(3).build();
 
-  private static final Paint PAINT_ROW_BGND0 = Paint.newBuilder().color(210, 210, 210).build();
-  private static final Paint PAINT_ROW_BGND1 = Paint.newBuilder().color(230, 230, 230).build();
+  private static final Paint PAINT_ROW_BGND0 = Paint.newBuilder().color(200, 200, 200).build();
+  private static final Paint PAINT_ROW_BGND1 = Paint.newBuilder().color(220, 220, 220).build();
 
   private void generateQuiz() {
 
@@ -122,15 +119,17 @@ public class SongOper extends AppOper {
     int y = PAGE_CONTENT.y;
 
     int startY = y;
-    int chunkHeight = 0;
+    int setHeightPixels = 0;
+
     while (true) {
+
       int indent = PIXELS_PER_INCH * 1;
       int ysep = style.chordHeight + style.spacingBetweenSections;
 
       int chordsPerRow = 16;
       List<Chord> chords = randomChords(chordsPerRow);
 
-      drawChunkSep(g, style, y);
+      drawBarBetweenSets(g, style, y);
 
       int x = PAGE_CONTENT.x + indent;
       plotChords(p, chords, null, style, new IPoint(x, y), xAdvance);
@@ -168,19 +167,24 @@ public class SongOper extends AppOper {
         y += ysep;
       }
       y += ysep * .3f;
-      if (chunkHeight == 0)
-        chunkHeight = y - startY;
-      if (y + chunkHeight > PAGE_CONTENT.endY())
+      if (setHeightPixels == 0)
+        setHeightPixels = y - startY;
+      if (y + setHeightPixels > PAGE_CONTENT.endY())
         break;
     }
 
-    drawChunkSep(g, style, y);
+    drawBarBetweenSets(g, style, y);
 
-    File outFile = new File("samples/experiment.png");
+    File outFile;
+    for (int i = 0;; i++) {
+      outFile = Files.getDesktopFile(String.format("quiz%02d.png", i));
+      if (!outFile.exists())
+        break;
+    }
     p.generateOutputFile(outFile);
   }
 
-  private void drawChunkSep(Graphics2D g, Style style, int y) {
+  private void drawBarBetweenSets(Graphics2D g, Style style, int y) {
     PAINT_SEP.apply(g);
     y -= style.spacingBetweenSections * 0.7f;
     line(g, PAGE_CONTENT.x, y, PAGE_CONTENT.endX(), y);
@@ -190,7 +194,7 @@ public class SongOper extends AppOper {
     List<Scale> scales = arrayList();
     String scaleExp = mConfig.scales();
     if (nullOrEmpty(scaleExp)) {
-      scaleExp = "c g f d b-flat";
+      scaleExp = "e-flat g f d b-flat";
     }
     for (String s : split(scaleExp, ' ')) {
       if (s.isEmpty())
@@ -215,13 +219,13 @@ public class SongOper extends AppOper {
 
     while (chords.size() < count) {
 
-      int[] ci = biasedSample(chordNumbers().length, count);
+      int[] ci = biasedSample(nashvilleNumberSet().length, count);
 
       for (int i = 0; chords.size() < count; i++) {
         Chord.Builder c;
         int mainChord = -1;
 
-        mainChord = chordNumbers()[ci[i]];
+        mainChord = nashvilleNumberSet()[ci[i]];
 
         if (random().nextInt(30) < 10) {
           int auxChord;
@@ -240,17 +244,24 @@ public class SongOper extends AppOper {
   }
 
   /**
-   * Swap chords to try to eliminate adjacent pairs; remove chords from list if
-   * necessary
+   * Swap chords to try to eliminate nearby duplicates; remove chords from list
+   * if necessary
    */
   private void fixAdjacentPairs(List<Chord> chords) {
     int discardPoint = -1;
+
+    // We try to avoid repeating a chord that appeared either one or two slots before it
     for (int j = 0; j < chords.size() - 1; j++) {
-      Chord cj = chords.get(j);
+
+      Chord c1 = chords.get(j);
+      Chord c0 = c1;
+      if (j > 0)
+        c0 = chords.get(j - 1);
+
       int k = j + 1;
       while (k < chords.size()) {
-        Chord ck = chords.get(k);
-        if (cj.number() != ck.number())
+        Chord c2 = chords.get(k);
+        if (c1.number() != c2.number() && c0.number() != c2.number())
           break;
         k++;
       }
@@ -272,16 +283,22 @@ public class SongOper extends AppOper {
     if (discardPoint >= 0) {
       removeAllButFirstN(chords, discardPoint);
     }
-
   }
 
-  private int[] biasedSample(int range, int pop) {
-    int[] result = new int[pop];
+  /**
+   * Construct a random set of integers 0 <= n < range, with lower values
+   * occurring more frequently
+   * 
+   * @param range
+   * @param count
+   * @return
+   */
+  private int[] biasedSample(int range, int count) {
+    int[] result = new int[count];
     float scale = 1.7f;
     final float shift = 0.15f;
     int sum = 0;
-    while (sum < pop) {
-      //float q = (random().nextFloat() * random().nextFloat() - shift) * scale;
+    while (sum < count) {
       int k = (int) Math.floor((random().nextFloat() * random().nextFloat() - shift) * scale * range);
       if (k < 0 || k >= range)
         continue;
@@ -291,30 +308,40 @@ public class SongOper extends AppOper {
   }
 
   private Random random() {
-    if (mRand == null) {
+    if (mRandom == null) {
       int seed = mConfig.seed();
       if (seed <= 0)
         seed = 1 + (((int) System.currentTimeMillis()) & 0xffff);
-      mRand = new Random(seed);
+      mRandom = new Random(seed);
     }
-    return mRand;
+    return mRandom;
   }
 
-  private Random mRand;
-
-  private int[] chordNumbers() {
-    if (mChordNumbers == null) {
-      String chordExp = mConfig.chordNumbers();
-      chordExp = ifNullOrEmpty(chordExp, "4 5 6 2 7 3 1");
-      List<String> expr = split(chordExp, ' ');
-      IntArray.Builder cn = IntArray.newBuilder();
-      for (String x : expr) {
-        cn.add(Integer.parseInt(x));
-        mChordNumbers = cn.array();
+  /**
+   * Get set of Nashville Numbers to construct random sequence from, ordered by
+   * decreasing approximate frequency
+   */
+  private int[] nashvilleNumberSet() {
+    if (mNashvilleNumberSet == null) {
+      String chordNumbersExpression = mConfig.chordNumbers();
+      chordNumbersExpression = ifNullOrEmpty(chordNumbersExpression, "4 5 6 2 7 3 1");
+      IntArray.Builder ints = IntArray.newBuilder();
+      for (String numberExpr : split(chordNumbersExpression, ' ')) {
+        if (nullOrEmpty(numberExpr))
+          continue;
+        int chordNumber = Integer.parseInt(numberExpr);
+        checkArgument(chordNumber >= 1 && chordNumber <= 7, "Not a legal Nashville chord number:",
+            chordNumber);
+        ints.add(chordNumber);
+        mNashvilleNumberSet = ints.array();
       }
     }
-    return mChordNumbers;
+    return mNashvilleNumberSet;
   }
 
-  private int[] mChordNumbers;
+  private SongConfig mConfig;
+  private File mSourceFile;
+  private Random mRandom;
+  private int[] mNashvilleNumberSet;
+
 }

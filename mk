@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-APP=dev
+APP=jmus
 
 ###### Flags start ##### {~flags:
 DRIVER=1

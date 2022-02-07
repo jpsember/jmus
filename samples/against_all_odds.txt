@@ -1,0 +1,24 @@
+title "Against All Odds"
+
+subtitle "Phil Collins"
+smalltext "Original Key: D flat"
+
+beats:4
+
+text "Intro"
+
+ 2- 5 2- 5
+
+
+text "Verse 1 + Verse 2"
+6- 7- 1 2-
+4 5/4 3- 6-
+2- 2- 5 5 smalltext "2nd time 7th"
+
+text "Chorus"
+1 1 2 2
+6- 4 2- (5 57)
+
+text "Verse 3"
+text "Chorus"
+text "Outro"
