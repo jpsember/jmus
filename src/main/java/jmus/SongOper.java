@@ -66,7 +66,7 @@ public class SongOper extends AppOper {
   public void perform() {
     mConfig = config();
 
-    if (alert("experiment")) {
+    if (Files.empty(mConfig.input())) {
       experiment();
       return;
     }
@@ -98,59 +98,79 @@ public class SongOper extends AppOper {
   private static final Paint PAINT_SCALE = Paint.newBuilder().color(128, 128, 128).font(FONT_BOLD, 1.2f)
       .build();
 
+  private static final Paint PAINT_SEP = Paint.newBuilder().color(128, 128, 128).width(3).build();
+
   private void experiment() {
 
     PagePlotter p = new PagePlotter();
     Graphics2D g = p.graphics();
-    //rect(g, PAGE_CONTENT);
+    // rect(g, PAGE_CONTENT);
 
     Style style = style(0);
     int xAdvance = style.meanChordWidthPixels + style.chordPadX + 8;
 
     int y = PAGE_CONTENT.y;
 
-    int indent = PIXELS_PER_INCH * 1;
-    int ysep = style.chordHeight + style.spacingBetweenSections;
+    int startY = y;
+    int chunkHeight = 0;
+    while (true) {
+      int indent = PIXELS_PER_INCH * 1;
+      int ysep = style.chordHeight + style.spacingBetweenSections;
 
-    int chordsPerRow = 16;
-    List<Chord> chords = randomChords(chordsPerRow);
+      int chordsPerRow = 16;
+      List<Chord> chords = randomChords(chordsPerRow);
 
-    int x = PAGE_CONTENT.x + indent;
-    plotChords(p, chords, null, style, new IPoint(x, y), xAdvance);
+      drawChunkSep(g, y - style.spacingBetweenSections / 2);
 
-    y += ysep * 1.5;
+      int x = PAGE_CONTENT.x + indent;
+      plotChords(p, chords, null, style, new IPoint(x, y), xAdvance);
 
-    List<Scale> scales = buildScaleList();
+      y += ysep * 1.2;
 
-    for (Scale scale : scales) {
-      String n = scale.name();
-      n = n.replace('-', ' ');
-      n = DataUtil.capitalizeFirst(n) + ":";
+      List<Scale> scales = buildScaleList();
 
-      {
-        PAINT_SCALE.apply(g);
-        FontMetrics f = g.getFontMetrics();
-        int tx = x - f.stringWidth(n) - style.chordPadX * 2;
+      for (Scale scale : scales) {
+        String n = scale.name();
+        n = n.replace('-', ' ');
+        n = DataUtil.capitalizeFirst(n) + ":";
 
-        g.drawString(n, tx, y + f.getAscent());
+        {
+          PAINT_SCALE.apply(g);
+          FontMetrics f = g.getFontMetrics();
+          int tx = x - f.stringWidth(n) - style.chordPadX * 3;
+          g.drawString(n, tx, y + f.getAscent());
+        }
 
+        plotChords(p, chords, scale, style, new IPoint(x, y), xAdvance);
+        y += ysep;
       }
-
-      plotChords(p, chords, scale, style, new IPoint(x, y), xAdvance);
-      y += ysep;
+      y += ysep * .3f;
+      if (chunkHeight == 0)
+        chunkHeight = y - startY;
+      if (y + chunkHeight > PAGE_CONTENT.endY())
+        break;
     }
+    drawChunkSep(g, y - style.spacingBetweenSections / 2);
+
     File outFile = new File("samples/experiment.png");
     p.generateOutputFile(outFile);
     pr("...done");
+  }
+
+  private void drawChunkSep(Graphics2D g, int y) {
+    PAINT_SEP.apply(g);
+    line(g, PAGE_CONTENT.x, y, PAGE_CONTENT.endX(), y);
   }
 
   private List<Scale> buildScaleList() {
     List<Scale> scales = arrayList();
     String scaleExp = mConfig.scales();
     if (nullOrEmpty(scaleExp)) {
-      scaleExp = "c g f e-flat";
+      scaleExp = "c g f d b-flat";
     }
     for (String s : split(scaleExp, ' ')) {
+      if (s.isEmpty())
+        continue;
       scales.add(scale(s));
     }
     return scales;
@@ -166,16 +186,12 @@ public class SongOper extends AppOper {
     }
   }
 
-  //
-  //  private int randChord() {
-  //  
-  //  }
-  //  
   private List<Chord> randomChords(int count) {
     List<Chord> chords = arrayList();
 
     int[] ci = biasedSample(chordNumbers().length, count);
 
+    todo("try to shuffle or replace if duplicate chords in sequence");
     for (int i = 0; i < count; i++) {
 
       Chord.Builder c;
@@ -193,7 +209,7 @@ public class SongOper extends AppOper {
       //        c = chord(mainChord, auxChord);
       //      } else
       //        
-        c = chord(mainChord);
+      c = chord(mainChord);
       chords.add(c.build());
     }
     return chords;
