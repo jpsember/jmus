@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import jmus.gen.Chord;
 import jmus.gen.ChordType;
@@ -30,7 +31,7 @@ import static jmus.MusUtil.*;
 /**
  * For plotting a song into a png
  */
-public final class PagePlotter extends BaseObject  {
+public final class PagePlotter extends BaseObject {
 
   public PagePlotter() {
     BufferedImage img = mImage = ImgUtil.build(PAGE_SIZE.scaledBy(DOTS_PER_INCH),
@@ -256,14 +257,16 @@ public final class PagePlotter extends BaseObject  {
   private static int renderTextEntries(Graphics2D g, Style style, Collection<TextEntry.Builder> textEntries,
       IPoint topLeft) {
 
-    final boolean DEBUG = false;
     FontMetrics f = g.getFontMetrics();
 
+    List<List<RenderedChar>> charPositionLists = arrayList();
+
     int maxWidth = 0;
-    int heightTotal = 0;
     {
       int y = 0;
       for (TextEntry.Builder tx : textEntries) {
+
+        List<RenderedChar> charPositionList = null;
 
         int rowHeight = f.getHeight();
         tx.yOffset(y);
@@ -271,12 +274,13 @@ public final class PagePlotter extends BaseObject  {
         if (tx.text().startsWith("~")) {
           rowHeight = style.dashHeight;
         } else {
-          todo("have custom renderer to space things tighter");
-          tx.renderWidth(f.stringWidth(tx.text()));
+          charPositionList = determineCharPositions(f, tx.text());
+          int newWidth = determineStringWidth(charPositionList);
+          tx.renderWidth(newWidth);
         }
         maxWidth = Math.max(maxWidth, tx.renderWidth());
         y += rowHeight;
-        heightTotal = y - f.getLeading();
+        charPositionLists.add(charPositionList);
       }
     }
 
@@ -284,10 +288,9 @@ public final class PagePlotter extends BaseObject  {
     int x0 = topLeft.x;
     int x1 = topLeft.x + maxWidth;
 
-    if (DEBUG)
-      rect(g, x0, py, maxWidth, heightTotal);
-
+    int row = -1;
     for (TextEntry tx : textEntries) {
+      row++;
       if (tx.text().startsWith("~")) {
         switch (tx.text().substring(1)) {
         default:
@@ -299,16 +302,86 @@ public final class PagePlotter extends BaseObject  {
           break;
         }
       } else {
+        List<RenderedChar> charPositionList = charPositionLists.get(row);
         int y = py + tx.yOffset();
-        g.drawString(tx.text(), x0, y + f.getAscent());
+        String str = tx.text();
 
-        if (DEBUG) {
-          line(g, x0, y, x0 + maxWidth, y + f.getHeight());
-          line(g, x0, y + f.getHeight(), x0 + maxWidth, y);
+        int ry = y + f.getAscent();
+        for (int i = 0; i < str.length(); i++) {
+          char c = str.charAt(i);
+          RenderedChar charPosition = charPositionList.get(i);
+          g.drawString(Character.toString(c), x0 + charPosition.x, ry);
         }
       }
     }
     return maxWidth;
+  }
+
+  private static int determineStringWidth(List<RenderedChar> rcl) {
+    if (rcl.isEmpty())
+      return 0;
+    RenderedChar last = last(rcl);
+    return last.x + last.width;
+  }
+
+  private static class CharAdjust {
+    int leftAdjust;
+    int rightAdjust;
+  }
+
+  private static Map<Character, CharAdjust> sCharSpacingAdjustMap = hashMap();
+
+  private static void addCharSpacing(char c, int leftAdjust, int rightAdjust) {
+    CharAdjust adj = new CharAdjust();
+    adj.leftAdjust = leftAdjust;
+    adj.rightAdjust = rightAdjust;
+    sCharSpacingAdjustMap.put(c, adj);
+  }
+
+  static {
+    addCharSpacing('♭', -2, 0);
+    addCharSpacing('♯', -2, 0);
+    addCharSpacing('⁻', -2, 0);
+    addCharSpacing('⁺', -2, 0);
+    addCharSpacing('ᵒ', -2, 0);
+    addCharSpacing('²', -2, 0);
+    addCharSpacing('⁴', -2, 0);
+    addCharSpacing('⁵', -2, 0);
+    addCharSpacing('⁶', -2, 0);
+    addCharSpacing('⁷', -2, 0);
+    addCharSpacing('⁹', -2, 0);
+  }
+
+  private static List<RenderedChar> determineCharPositions(FontMetrics metrics, String text) {
+    List<RenderedChar> result = arrayList();
+
+    int x = 0;
+
+    for (int i = 0; i < text.length(); i++) {
+
+      RenderedChar charInfo = new RenderedChar();
+      charInfo.ch = text.charAt(i);
+
+      int cw = metrics.charWidth(charInfo.ch);
+
+      charInfo.width = cw;
+
+      CharAdjust adj = sCharSpacingAdjustMap.get(charInfo.ch);
+      if (adj != null) {
+        x += adj.leftAdjust;
+        charInfo.width = cw + adj.leftAdjust + adj.rightAdjust;
+      }
+      charInfo.x = x;
+      x += charInfo.width;
+      result.add(charInfo);
+    }
+    return result;
+  }
+
+  private static class RenderedChar {
+    char ch;
+    int x;
+    int width;
   }
 
   private Scale mKey;

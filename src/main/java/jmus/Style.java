@@ -61,8 +61,13 @@ public final class Style {
           ptChord.toBuilder().font(FONT_PLAIN, 1.2f), //
           ptChordSmall.toBuilder().font(FONT_PLAIN, 0.8f), //
           ptFrame.toBuilder().width(2).build(), //
-          30, // 
-          32, 2, 10, 7, 9, 20, //
+          26, //  mean chord width
+          30, // chord height
+          2, // dash height
+          10, // bar padding x
+          7, // bar padding y
+          9, // chord padding x
+          20, // spacing between sections
           ptTitle, ptSubtitle, ptText, ptSmallText, 14));
 
       sStyles.add(new Style(ptChord, ptChordSmall, ptFrame, 35, 48, 3, 15, 10, 12, 34, ptTitle, ptSubtitle,
