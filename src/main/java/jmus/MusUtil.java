@@ -182,40 +182,34 @@ public final class MusUtil {
   public static final IRect PAGE_FULL = new IRect(PAGE_SIZE);
   public static final IRect PAGE_CONTENT = PAGE_FULL.withInset(PAGE_MARGIN);
 
-  // Fonts that look ok with regard to spacing of flats, sharps:
-  // -----------------------------------------------------------
-  // Courier
-  // Courier New
-  // Dialog
-  // DialogInput
-  // Helvetica Neue
-  // Lucida Grande
-  // Menlo
-  // Monospaced
-  // SansSerif
-  //
-  // (Maybe there is some way to improve the spacing so other fonts can be used as well?)
-  // (A custom drawString that shifts some chars over...)
-
-  public static final String FONT_NAME = "Courier"; 
+  public static final String FONT_NAME = "Courier";
   public static final Font FONT_PLAIN = new Font(FONT_NAME, Font.PLAIN, 18);
   public static final Font FONT_BOLD = new Font(FONT_NAME, Font.BOLD, 18);
+
+  public static final String TEXT_FONT_NAME = "Chalkboard"; // "Noteworthy"; //
+  public static final Font FONT_TEXT_PLAIN = new Font(TEXT_FONT_NAME, Font.PLAIN, 18);
+  public static final Font FONT_TEXT_BOLD = new Font(TEXT_FONT_NAME, Font.BOLD, 18);
+
   public static final Paint PAINT_NORMAL = Paint.newBuilder().font(FONT_PLAIN, 1f).color(Color.black)
       .width(1f).build();
 
-  // fontOffset 0, 86, 165
-  //
-  public static void renderFonts(Graphics2D g, int fontOffset) {
+  /**
+   * Render the available fonts
+   * 
+   * @return index of font following last one rendered
+   */
+  public static int renderFonts(Graphics2D g, int indexOfFirstFont) {
     String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
     int column = -1;
     int y = -1;
     int x = -1;
 
+    int fontIndex = indexOfFirstFont;
     while (true) {
-      if (fontOffset >= fonts.length)
+      if (fontIndex >= fonts.length)
         break;
-      String s = fonts[fontOffset];
-      fontOffset++;
+      String s = fonts[fontIndex];
+      fontIndex++;
       if (y < 0) {
         column++;
         if (column >= 2)
@@ -232,7 +226,7 @@ public final class MusUtil {
       if (y + m.getAscent() >= PAGE_CONTENT.endY())
         y = -1;
     }
-    pr("font offset:", fontOffset);
+    return fontIndex;
   }
 
   public static void rect(Graphics2D g, IRect r) {

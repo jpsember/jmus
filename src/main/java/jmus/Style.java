@@ -48,10 +48,10 @@ public final class Style {
   private static final Paint ptChordSmall = ptChord.toBuilder().font(FONT_PLAIN, 1f).build();
   private static final Paint ptFrame = PAINT_NORMAL.toBuilder().color(128, 128, 128).width(3).build();
 
-  private static final Paint ptTitle = PAINT_NORMAL.toBuilder().font(FONT_BOLD, 1.5f).build();
-  private static final Paint ptSubtitle = ptTitle.toBuilder().font(FONT_BOLD, 1.0f).build();
-  private static final Paint ptText = PAINT_NORMAL.toBuilder().font(FONT_PLAIN, 0.7f).build();
-  private static final Paint ptSmallText = ptText.toBuilder().font(FONT_PLAIN, 0.6f).build();
+  private static final Paint ptTitle = PAINT_NORMAL.toBuilder().font(FONT_TEXT_BOLD, 1.5f).build();
+  private static final Paint ptSubtitle = ptTitle.toBuilder().font(FONT_TEXT_BOLD, 1.0f).build();
+  private static final Paint ptText = PAINT_NORMAL.toBuilder().font(FONT_TEXT_PLAIN, 0.7f).build();
+  private static final Paint ptSmallText = ptText.toBuilder().font(FONT_TEXT_PLAIN, 0.6f).build();
 
   public static List<Style> styles() {
     if (sStyles == null) {

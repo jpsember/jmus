@@ -67,14 +67,14 @@ public class SongOper extends AppOper {
 
     if (false && alert("rendering fonts")) {
       PagePlotter p = new PagePlotter();
-      renderFonts(p.graphics(), 194);
+      int nextFontIndex = renderFonts(p.graphics(), 194);
+      pr("next font index:", nextFontIndex);
       File outFile = Files.getDesktopFile("fonts194.png");
       p.generateOutputFile(outFile);
       return;
     }
 
-    if (Files.empty(mConfig.input()) // || alert("always") //
-    ) {
+    if (Files.empty(mConfig.input())) {
       generateQuiz();
       return;
     }
