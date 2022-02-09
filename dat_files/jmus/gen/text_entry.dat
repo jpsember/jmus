@@ -1,5 +1,0 @@
-fields {
-  string text;
-  int render_width;
-  int y_offset;
-}

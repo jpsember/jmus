@@ -18,7 +18,6 @@ import jmus.gen.MusicKey;
 import jmus.gen.MusicLine;
 import jmus.gen.MusicSection;
 import jmus.gen.Song;
-import jmus.gen.TextEntry;
 import js.base.BaseObject;
 import js.file.Files;
 import js.geometry.IPoint;
@@ -52,10 +51,6 @@ public final class PagePlotter extends BaseObject {
 
   public Graphics2D graphics() {
     return mGraphics;
-  }
-
-  public BufferedImage image() {
-    return mImage;
   }
 
   public void generateOutputFile(File outputFile) {
@@ -170,10 +165,10 @@ public final class PagePlotter extends BaseObject {
 
     mTextEntries.clear();
 
-    tx().text(renderChord(chord, mKey, null, null).toString());
+    tx().text = renderChord(chord, mKey, null, null).toString();
     if (chord.slashChord() != null) {
-      tx().text("~dash");
-      tx().text(renderChord(chord.slashChord(), mKey, null, null).toString());
+      tx().text = "~dash";
+      tx().text = renderChord(chord.slashChord(), mKey, null, null).toString();
     }
 
     int width = renderTextEntries(graphics(), style, mTextEntries, loc.sumWith(0, yAdjust));
@@ -207,15 +202,13 @@ public final class PagePlotter extends BaseObject {
       bar.chords().add(Chord.newBuilder().type(ChordType.BEAT));
   }
 
-  List<List<Chord>> barList = arrayList();
-
-  public TextEntry.Builder tx() {
-    TextEntry.Builder b = TextEntry.newBuilder();
+  private TextEntry tx() {
+    TextEntry b = new TextEntry();
     mTextEntries.add(b);
     return b;
   }
 
-  public int renderString(int type, String text, Style style, IPoint loc, boolean plotAbove) {
+  private int renderString(int type, String text, Style style, IPoint loc, boolean plotAbove) {
     Graphics2D g = graphics();
     Paint pt;
     boolean center = false;
@@ -254,7 +247,7 @@ public final class PagePlotter extends BaseObject {
     return f.getHeight() + style.spacingBetweenSections / 3;
   }
 
-  private static int renderTextEntries(Graphics2D g, Style style, Collection<TextEntry.Builder> textEntries,
+  private static int renderTextEntries(Graphics2D g, Style style, Collection<TextEntry> textEntries,
       IPoint topLeft) {
 
     FontMetrics f = g.getFontMetrics();
@@ -264,21 +257,21 @@ public final class PagePlotter extends BaseObject {
     int maxWidth = 0;
     {
       int y = 0;
-      for (TextEntry.Builder tx : textEntries) {
+      for (TextEntry tx : textEntries) {
 
         List<RenderedChar> charPositionList = null;
 
         int rowHeight = f.getHeight();
-        tx.yOffset(y);
+        tx.yOffset = y;
 
-        if (tx.text().startsWith("~")) {
+        if (tx.text.startsWith("~")) {
           rowHeight = style.dashHeight;
         } else {
-          charPositionList = determineCharPositions(f, tx.text());
+          charPositionList = determineCharPositions(f, tx.text);
           int newWidth = determineStringWidth(charPositionList);
-          tx.renderWidth(newWidth);
+          tx.renderWidth = newWidth;
         }
-        maxWidth = Math.max(maxWidth, tx.renderWidth());
+        maxWidth = Math.max(maxWidth, tx.renderWidth);
         y += rowHeight;
         charPositionLists.add(charPositionList);
       }
@@ -291,8 +284,8 @@ public final class PagePlotter extends BaseObject {
     int row = -1;
     for (TextEntry tx : textEntries) {
       row++;
-      if (tx.text().startsWith("~")) {
-        switch (tx.text().substring(1)) {
+      if (tx.text.startsWith("~")) {
+        switch (tx.text.substring(1)) {
         default:
           throw notSupported("unknown text:", tx);
         case "dash": {
@@ -303,8 +296,8 @@ public final class PagePlotter extends BaseObject {
         }
       } else {
         List<RenderedChar> charPositionList = charPositionLists.get(row);
-        int y = py + tx.yOffset();
-        String str = tx.text();
+        int y = py + tx.yOffset;
+        String str = tx.text;
 
         int ry = y + f.getAscent();
         for (int i = 0; i < str.length(); i++) {
@@ -384,9 +377,15 @@ public final class PagePlotter extends BaseObject {
     int width;
   }
 
+  private static class TextEntry {
+    String text;
+    int renderWidth;
+    int yOffset;
+  }
+
   private MusicKey mKey;
   private BufferedImage mImage;
   private Graphics2D mGraphics;
-  private List<TextEntry.Builder> mTextEntries = arrayList();
+  private List<TextEntry> mTextEntries = arrayList();
 
 }
