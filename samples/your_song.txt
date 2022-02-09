@@ -4,7 +4,7 @@ subtitle "Elton John"
 smalltext "Original Key: E♭"
 
 //beats:4
-text "Verse"
+"Verse"
 
 //key: "c"
 
@@ -13,7 +13,7 @@ text "Verse"
 1/5 5 27 6-
 1 2-7 4 5 smalltext "2nd time C"
 
-text "Chorus"
+"Chorus"
 5/7 6- 2- 4
 5/7 6- 2- 4
 6- 6-/5 6-/#4 47

@@ -65,15 +65,6 @@ public class SongOper extends AppOper {
   public void perform() {
     mConfig = config();
 
-    if (false && alert("rendering fonts")) {
-      PagePlotter p = new PagePlotter();
-      int nextFontIndex = renderFonts(p.graphics(), 194);
-      pr("next font index:", nextFontIndex);
-      File outFile = Files.getDesktopFile("fonts194.png");
-      p.generateOutputFile(outFile);
-      return;
-    }
-
     if (Files.empty(mConfig.input())) {
       generateQuiz();
       return;

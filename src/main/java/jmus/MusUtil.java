@@ -4,9 +4,7 @@ import static js.base.Tools.*;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
 import java.util.List;
 
 import jmus.gen.Chord;
@@ -192,42 +190,6 @@ public final class MusUtil {
 
   public static final Paint PAINT_NORMAL = Paint.newBuilder().font(FONT_PLAIN, 1f).color(Color.black)
       .width(1f).build();
-
-  /**
-   * Render the available fonts
-   * 
-   * @return index of font following last one rendered
-   */
-  public static int renderFonts(Graphics2D g, int indexOfFirstFont) {
-    String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-    int column = -1;
-    int y = -1;
-    int x = -1;
-
-    int fontIndex = indexOfFirstFont;
-    while (true) {
-      if (fontIndex >= fonts.length)
-        break;
-      String s = fonts[fontIndex];
-      fontIndex++;
-      if (y < 0) {
-        column++;
-        if (column >= 2)
-          break;
-        y = PAGE_CONTENT.y + 20;
-        x = (int) (PAGE_CONTENT.x + 10 + column * PIXELS_PER_INCH * 4f);
-      }
-
-      Font f = new Font(s, Font.BOLD, 18);
-      g.setFont(f);
-      FontMetrics m = g.getFontMetrics();
-      g.drawString(s + "(E♭ A♭ F♯)", x + 20, y + m.getAscent());
-      y += m.getHeight();
-      if (y + m.getAscent() >= PAGE_CONTENT.endY())
-        y = -1;
-    }
-    return fontIndex;
-  }
 
   public static void rect(Graphics2D g, IRect r) {
     g.drawRect(r.x, r.y, r.width, r.height);
