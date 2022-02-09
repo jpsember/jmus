@@ -8,11 +8,16 @@ fields {
   ChordType type;
   OptType opt_type;
 
+  // The Nashville number
+  //
   int number;
 
   // If >= 0, it is part of a group of chords to be displayed within a single bar
   //
   int beat_number = -1;
 
+  // If not null, the chord represents the treble portion of a slash chord, with this
+  // the base portion:
+  //
   ?Chord slash_chord;
 }

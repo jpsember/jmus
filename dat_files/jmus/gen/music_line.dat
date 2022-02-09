@@ -1,3 +1,5 @@
+// A sequence of chords representing a single line within a music section
+//
 fields {
   *Chord chords;
 }
