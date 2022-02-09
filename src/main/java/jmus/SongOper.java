@@ -35,8 +35,8 @@ import java.util.Random;
 import static jmus.MusUtil.*;
 
 import jmus.gen.Chord;
+import jmus.gen.MusicKey;
 import jmus.gen.SongConfig;
-import jmus.gen.Scale;
 import jmus.gen.Song;
 import js.app.AppOper;
 import js.data.IntArray;
@@ -77,12 +77,12 @@ public class SongOper extends AppOper {
 
     Song song = new SongParser(mSourceFile).parse();
 
-    Scale scale = null;
+    MusicKey key = null;
     if (nonEmpty(mConfig.scale()))
-      scale = scale(mConfig.scale());
+      key = musicKey(mConfig.scale());
 
     PagePlotter p = new PagePlotter();
-    p.setKey(scale);
+    p.setKey(key);
     p.render(song, mConfig.style());
     File outFile = mConfig.output();
     if (Files.empty(outFile))
@@ -129,13 +129,13 @@ public class SongOper extends AppOper {
 
       y += ysep * 1.2;
 
-      List<Scale> scales = buildScaleList();
+      List<MusicKey> keys = buildMusicKeyList();
 
       int x0 = x - (int) (style.barPadX * 1.6);
       int x1 = x + xAdvance * chords.size();
 
       int rowNum = -1;
-      for (Scale scale : scales) {
+      for (MusicKey key : keys) {
         rowNum++;
         {
           int y0 = y - style.chordPadX;
@@ -145,7 +145,7 @@ public class SongOper extends AppOper {
           fill(g, x0, y0, x1 - x0, y1 - y0);
         }
 
-        String n = symbolicName(scale);
+        String n = symbolicName(key);
         {
           PAINT_SCALE.apply(g);
           FontMetrics f = g.getFontMetrics();
@@ -153,8 +153,8 @@ public class SongOper extends AppOper {
           g.drawString(n, tx, y + f.getAscent());
         }
 
-        p.setKey(scale);
-        plotChords(p, chords, scale, style, new IPoint(x, y), xAdvance);
+        p.setKey(key);
+        plotChords(p, chords, key, style, new IPoint(x, y), xAdvance);
         y += ysep;
       }
       y += ysep * .3f;
@@ -181,8 +181,8 @@ public class SongOper extends AppOper {
     line(g, PAGE_CONTENT.x, y, PAGE_CONTENT.endX(), y);
   }
 
-  private List<Scale> buildScaleList() {
-    List<Scale> scales = arrayList();
+  private List<MusicKey> buildMusicKeyList() {
+    List<MusicKey> musicKeys = arrayList();
     String scaleExp = mConfig.scales();
     if (nullOrEmpty(scaleExp)) {
       scaleExp = "e-flat g f d b-flat";
@@ -190,14 +190,14 @@ public class SongOper extends AppOper {
     for (String s : split(scaleExp, ' ')) {
       if (s.isEmpty())
         continue;
-      scales.add(scale(s));
+      musicKeys.add(musicKey(s));
     }
-    return scales;
+    return musicKeys;
   }
 
-  private void plotChords(PagePlotter p, List<Chord> chords, Scale scale, Style style, IPoint loc,
+  private void plotChords(PagePlotter p, List<Chord> chords, MusicKey key, Style style, IPoint loc,
       int xAdvance) {
-    p.setKey(scale);
+    p.setKey(key);
     int x = loc.x;
     int y = loc.y;
     for (Chord c : chords) {

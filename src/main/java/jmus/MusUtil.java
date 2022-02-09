@@ -6,13 +6,13 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.util.List;
+import java.util.Map;
 
 import jmus.gen.Chord;
 import jmus.gen.ChordType;
+import jmus.gen.MusicKey;
 import jmus.gen.MusicLine;
 import jmus.gen.MusicSection;
-import jmus.gen.Scale;
-import jmus.gen.ScaleMap;
 import jmus.gen.Song;
 import js.file.Files;
 import js.geometry.IPoint;
@@ -30,7 +30,7 @@ public final class MusUtil {
   private static final int[] numberToKeyIndexFlat = { 11, 1, 3, 4, 6, 8, 10 };
   private static final int[] numberToKeyIndexSharp = { 1, 3, 4, 6, 8, 10, 0 };
 
-  public static StringBuilder renderChord(Chord chord, Scale scale, StringBuilder sb,
+  public static StringBuilder renderChord(Chord chord, MusicKey key, StringBuilder sb,
       Chord slashChordOrNull) {
     if (sb == null)
       sb = new StringBuilder();
@@ -40,7 +40,7 @@ public final class MusUtil {
       return sb;
     }
 
-    if (scale != null) {
+    if (key != null) {
       int cn = chord.number() - 1;
 
       int keyIndex;
@@ -59,7 +59,7 @@ public final class MusUtil {
         break;
       }
 
-      sb.append(scale.keys().get(keyIndex));
+      sb.append(key.keys().get(keyIndex));
 
     } else {
 
@@ -117,37 +117,39 @@ public final class MusUtil {
 
     if (slashChordOrNull != null) {
       sb.append('/');
-      renderChord(slashChordOrNull, scale, sb, null);
+      renderChord(slashChordOrNull, key, sb, null);
     }
     return sb;
   }
 
-  public static Scale scale(String name) {
-    todo("rename this 'key'?");
-    Scale s = scaleMap().scales().get(name);
+  public static MusicKey musicKey(String name) {
+    MusicKey s = keyMap().get(name);
     if (s == null)
-      throw badArg("Can't find scale:", quote(name));
+      throw badArg("Can't find key:", quote(name));
     return s;
   }
 
-  public static ScaleMap scaleMap() {
-    if (sScaleMap == null) {
+  public static Map<String, MusicKey> keyMap() {
+    if (sMusicKeyMap == null) {
       JSMap jsMap = new JSMap(Files.readString(MusUtil.class, "scales.json"));
-      sScaleMap = Files.parseAbstractData(ScaleMap.DEFAULT_INSTANCE, jsMap);
+      Map<String, MusicKey> mp = hashMap();
+      for (String name : jsMap.keySet())
+        mp.put(name, Files.parseAbstractData(MusicKey.DEFAULT_INSTANCE, jsMap.getMap(name)));
+      sMusicKeyMap = mp;
     }
-    return sScaleMap;
+    return sMusicKeyMap;
   }
 
-  public static List<String> scaleNames() {
-    if (sScaleNames == null) {
-      sScaleNames = arrayList();
-      sScaleNames.addAll(scaleMap().scales().keySet());
+  public static List<String> musicKeyNames() {
+    if (sMusicKeyNames == null) {
+      sMusicKeyNames = arrayList();
+      sMusicKeyNames.addAll(keyMap().keySet());
     }
-    return sScaleNames;
+    return sMusicKeyNames;
   }
 
-  private static ScaleMap sScaleMap;
-  private static List<String> sScaleNames;
+  private static Map<String, MusicKey> sMusicKeyMap;
+  private static List<String> sMusicKeyNames;
 
   // ------------------------------------------------------------------
   // Parsing
@@ -213,7 +215,7 @@ public final class MusUtil {
     line(g, x, y - r, x, y + 4);
   }
 
-  public static String renderSongAsText(Song song, Scale scale) {
+  public static String renderSongAsText(Song song, MusicKey key) {
     final int CHORD_COLUMN_SIZE = 5;
 
     StringBuilder lineBuilder = new StringBuilder();
@@ -226,7 +228,7 @@ public final class MusUtil {
         for (Chord chord : line.chords()) {
           chordNum++;
           tab(lineBuilder, cursor + chordNum * CHORD_COLUMN_SIZE);
-          renderChord(chord, scale, lineBuilder, chord.slashChord());
+          renderChord(chord, key, lineBuilder, chord.slashChord());
         }
         lineBuilder.append("\n");
       }
@@ -247,7 +249,7 @@ public final class MusUtil {
     return chord(number).slashChord(chord(baseNumber));
   }
 
-  public static String symbolicName(Scale key) {
+  public static String symbolicName(MusicKey key) {
     checkState(key != null, "no key defined");
     return key.keys().get(0);
   }

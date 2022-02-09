@@ -14,9 +14,9 @@ import java.util.Map;
 
 import jmus.gen.Chord;
 import jmus.gen.ChordType;
+import jmus.gen.MusicKey;
 import jmus.gen.MusicLine;
 import jmus.gen.MusicSection;
-import jmus.gen.Scale;
 import jmus.gen.Song;
 import jmus.gen.TextEntry;
 import js.base.BaseObject;
@@ -44,8 +44,8 @@ public final class PagePlotter extends BaseObject {
     PAINT_NORMAL.apply(g);
   }
 
-  public void setKey(Scale scale) {
-    mKey = scale;
+  public void setKey(MusicKey key) {
+    mKey = key;
   }
 
   private static final Color BAR_COLOR = new Color(128, 128, 128);
@@ -77,7 +77,7 @@ public final class PagePlotter extends BaseObject {
         throw notSupported("unsupported section type:", section);
 
       case T_KEY:
-        mKey = scale(section.text());
+        mKey = musicKey(section.text());
         break;
 
       case T_TITLE:
@@ -384,7 +384,7 @@ public final class PagePlotter extends BaseObject {
     int width;
   }
 
-  private Scale mKey;
+  private MusicKey mKey;
   private BufferedImage mImage;
   private Graphics2D mGraphics;
   private List<TextEntry.Builder> mTextEntries = arrayList();

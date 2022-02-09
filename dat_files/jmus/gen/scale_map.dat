@@ -1,4 +1,0 @@
-
-fields {
-  map string Scale scales;
-}
