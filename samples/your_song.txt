@@ -4,16 +4,22 @@ subtitle "Elton John"
 smalltext "Original Key: E♭"
 
 //beats:4
-"Verse"
 
-//key: "c"
+"Verse"
 
 1 47 5/7 3-
 6- 6-/5 6-/#4 47
 1/5 5 27 6-
-1 2-7 4 5 smalltext "2nd time C"
+1 2-7 4 5   smalltext "2nd time C"
+
+/*
+  \   // The backslash causes the following sections to be placed on the same 'section' row
+
+smalltext "2nd time C"
+*/
 
 "Chorus"
+
 5/7 6- 2- 4
 5/7 6- 2- 4
 6- 6-/5 6-/#4 47

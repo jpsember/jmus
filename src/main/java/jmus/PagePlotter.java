@@ -62,7 +62,7 @@ public final class PagePlotter extends BaseObject {
     ImgUtil.writeImage(Files.S, mImage, outputFile);
   }
 
-  public void render(Song song, int styleNumber) {
+  public void plotSong(Song song, int styleNumber) {
     Style style = style(styleNumber);
 
     Graphics2D g = graphics();

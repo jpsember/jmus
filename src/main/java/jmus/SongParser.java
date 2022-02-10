@@ -84,6 +84,8 @@ public class SongParser extends BaseObject {
 
     flushMusicLine();
     flushMusicSection();
+    
+    //pr("parsed song:",INDENT,song());
     return song().build();
   }
 

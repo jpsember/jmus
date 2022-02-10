@@ -70,11 +70,14 @@ public class SongOper extends AppOper {
     }
   }
 
+  private void generateQuiz() {
+    new QuizGenerator(mConfig).generate();
+  }
+
   private void generateSong() {
     mSourceFile = mConfig.input();
-    if (Files.empty(mSourceFile)) {
+    if (Files.empty(mSourceFile))
       setError("Please specify a source file");
-    }
 
     Song song = new SongParser(mSourceFile).parse();
 
@@ -84,16 +87,13 @@ public class SongOper extends AppOper {
 
     PagePlotter p = new PagePlotter();
     p.setKey(key);
-    p.render(song, mConfig.style());
+    p.plotSong(song, mConfig.style());
+
     File outFile = mConfig.output();
     if (Files.empty(outFile))
       outFile = mSourceFile;
     outFile = Files.setExtension(outFile, "png");
     p.generateOutputFile(outFile);
-  }
-
-  private void generateQuiz() {
-    new QuizGenerator(mConfig).generate();
   }
 
   private SongConfig mConfig;

@@ -167,7 +167,7 @@ public final class MusUtil {
 
   public static final int T_WS = 0, T_CR = 1, T_STRING = 2, T_CHORD = 3, T_FWD_SLASH = 4, T_PAROP = 5,
       T_PARCL = 6, T_PERIOD = 7, T_TITLE = 8, T_SUBTITLE = 9, T_TEXT = 10, T_SMALLTEXT = 11, T_BEATS = 12,
-      T_KEY = 13;
+      T_KEY = 13, T_BWD_SLASH = 14;
 
   // ------------------------------------------------------------------
   // Rendering
