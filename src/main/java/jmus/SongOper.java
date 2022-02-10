@@ -65,11 +65,20 @@ public class SongOper extends AppOper {
   public void perform() {
     mConfig = config();
 
-    if (Files.empty(mConfig.input())) {
+    if (DEV) {
       generateQuiz();
+      generateSong();
       return;
     }
 
+    if (Files.empty(mConfig.input())) {
+      generateQuiz();
+    } else {
+      generateSong();
+    }
+  }
+
+  private void generateSong() {
     mSourceFile = mConfig.input();
     if (Files.empty(mSourceFile)) {
       setError("Please specify a source file");

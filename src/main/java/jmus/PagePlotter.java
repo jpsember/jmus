@@ -10,7 +10,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import jmus.gen.Chord;
 import jmus.gen.ChordType;
@@ -54,6 +53,12 @@ public final class PagePlotter extends BaseObject {
   }
 
   public void generateOutputFile(File outputFile) {
+    if (DEV) {
+      if (outputFile.getName().startsWith("quiz"))
+        outputFile = Files.getDesktopFile("quiz.png");
+      else
+        outputFile = Files.getDesktopFile("song.png");
+    }
     ImgUtil.writeImage(Files.S, mImage, outputFile);
   }
 
@@ -317,34 +322,6 @@ public final class PagePlotter extends BaseObject {
     return last.x + last.width;
   }
 
-  private static class CharAdjust {
-    int leftAdjust;
-    int rightAdjust;
-  }
-
-  private static Map<Character, CharAdjust> sCharSpacingAdjustMap = hashMap();
-
-  private static void addCharSpacing(char c, int leftAdjust, int rightAdjust) {
-    CharAdjust adj = new CharAdjust();
-    adj.leftAdjust = leftAdjust;
-    adj.rightAdjust = rightAdjust;
-    sCharSpacingAdjustMap.put(c, adj);
-  }
-
-  static {
-    addCharSpacing('♭', -2, 0);
-    addCharSpacing('♯', -2, 0);
-    addCharSpacing('⁻', -2, 0);
-    addCharSpacing('⁺', -2, 0);
-    addCharSpacing('ᵒ', -2, 0);
-    addCharSpacing('²', -2, 0);
-    addCharSpacing('⁴', -2, 0);
-    addCharSpacing('⁵', -2, 0);
-    addCharSpacing('⁶', -2, 0);
-    addCharSpacing('⁷', -2, 0);
-    addCharSpacing('⁹', -2, 0);
-  }
-
   private static List<RenderedChar> determineCharPositions(FontMetrics metrics, String text) {
     List<RenderedChar> result = arrayList();
 
@@ -359,11 +336,11 @@ public final class PagePlotter extends BaseObject {
 
       charInfo.width = cw;
 
-      CharAdjust adj = sCharSpacingAdjustMap.get(charInfo.ch);
-      if (adj != null) {
-        x += adj.leftAdjust;
-        charInfo.width = cw + adj.leftAdjust + adj.rightAdjust;
+      if (charInfo.ch > 0xff) {
+        x -= 2;
+        charInfo.width -= 2;
       }
+
       charInfo.x = x;
       x += charInfo.width;
       result.add(charInfo);

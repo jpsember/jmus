@@ -23,6 +23,8 @@ import js.parsing.DFA;
 
 public final class MusUtil {
 
+  public static final boolean DEV = alert("DEV mode is true");
+  
   // 
   // Useful reference for unicode:  https://en.wikipedia.org/wiki/Unicode_subscripts_and_superscripts
 
