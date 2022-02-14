@@ -76,6 +76,7 @@ public final class PagePlotter extends BaseObject {
     boolean startOfRow = true;
     // True if the current row contains some chords
     boolean rowContainsChords = false;
+    int visibleSectionsInRow = 0;
     SectionType lastSectionPlottedInRow = null;
 
     int secNum = -1;
@@ -85,10 +86,13 @@ public final class PagePlotter extends BaseObject {
       if (startOfRow) {
         lastSectionPlottedInRow = null;
         rowContainsChords = false;
+        visibleSectionsInRow = 0;
         for (int j = secNum; j < song.sections().size(); j++) {
           MusicSection s = song.sections().get(j);
           if (s.type() == SectionType.LINE_BREAK || s.type() == SectionType.PARAGRAPH_BREAK)
             break;
+          if (visibleSection(s.type()))
+            visibleSectionsInRow++;
           if (s.type() == SectionType.CHORD_SEQUENCE)
             rowContainsChords = true;
         }
@@ -135,6 +139,8 @@ public final class PagePlotter extends BaseObject {
         if (rowContainsChords)
           boxHeight = style.chordHeight;
         IPoint stringSize = renderString(section.type(), section.textArg(), style, boxHeight,
+            visibleSectionsInRow == 1
+                && (section.type() == SectionType.TITLE || section.type() == SectionType.SUBTITLE),
             new IPoint(px, py));
         size = new IPoint(px - cursor.x + stringSize.x, stringSize.y);
         lastSectionPlottedInRow = section.type();
@@ -246,19 +252,17 @@ public final class PagePlotter extends BaseObject {
     return b;
   }
 
-  private IPoint renderString(SectionType type, String text, Style style, int boxHeight, IPoint loc) {
+  private IPoint renderString(SectionType type, String text, Style style, int boxHeight, boolean center,
+      IPoint loc) {
     Graphics2D g = graphics();
     Paint pt;
-    boolean center = false;
     switch (type) {
     default:
       throw notSupported("text type", type);
     case TITLE:
-      center = true;
       pt = style.paintTitle;
       break;
     case SUBTITLE:
-      center = true;
       pt = style.paintSubtitle;
       break;
     case TEXT:
@@ -282,7 +286,6 @@ public final class PagePlotter extends BaseObject {
 
     if (center)
       x = PAGE_CONTENT.midX() - width / 2;
-    todo("Figure out how to deal with centering");
 
     g.drawString(text, x, y);
     return new IPoint(width, f.getHeight());

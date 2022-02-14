@@ -12,6 +12,7 @@ import jmus.gen.Chord;
 import jmus.gen.ChordType;
 import jmus.gen.MusicKey;
 import jmus.gen.MusicSection;
+import jmus.gen.SectionType;
 import jmus.gen.Song;
 import js.file.Files;
 import js.geometry.IPoint;
@@ -23,7 +24,7 @@ import js.parsing.DFA;
 public final class MusUtil {
 
   public static final boolean DEV = alert("DEV mode is true");
-  
+
   // 
   // Useful reference for unicode:  https://en.wikipedia.org/wiki/Unicode_subscripts_and_superscripts
 
@@ -224,17 +225,14 @@ public final class MusUtil {
     for (MusicSection section : song.sections()) {
       lineBuilder.append("\n");
       int chordNum = -1;
-      for (Chord chord: section.chords()) {
+      for (Chord chord : section.chords()) {
         chordNum++;
-        //line : section.lines()) {
         int cursor = lineBuilder.length();
-       // for (Chord chord : line.chords()) {
-          tab(lineBuilder, cursor + chordNum * CHORD_COLUMN_SIZE);
-          renderChord(chord, key, lineBuilder, chord.slashChord());
-        //}
-       }
-      lineBuilder.append("\n");
+        tab(lineBuilder, cursor + chordNum * CHORD_COLUMN_SIZE);
+        renderChord(chord, key, lineBuilder, chord.slashChord());
       }
+      lineBuilder.append("\n");
+    }
 
     return lineBuilder.toString();
   }
@@ -254,6 +252,10 @@ public final class MusUtil {
   public static String symbolicName(MusicKey key) {
     checkState(key != null, "no key defined");
     return key.keys().get(0);
+  }
+
+  public static boolean visibleSection(SectionType type) {
+    return type.ordinal() <= SectionType.SMALL_TEXT.ordinal();
   }
 
 }

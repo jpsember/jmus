@@ -1,6 +1,5 @@
-//title "Hello"
-
-//subtitle "Elton John"
+ title "Hello"
+ subtitle "Elton John"
 //smalltext "Original Key: E♭"
 
 
