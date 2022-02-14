@@ -82,7 +82,7 @@ public class SongOper extends AppOper {
 
     Song song = new SongParser(mSourceFile).parse();
 
-    pr("parsed:",INDENT,song);
+    //pr("parsed:",INDENT,song);
     
     MusicKey key = null;
     if (nonEmpty(mConfig.scale()))

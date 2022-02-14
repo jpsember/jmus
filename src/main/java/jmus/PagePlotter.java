@@ -130,13 +130,10 @@ public final class PagePlotter extends BaseObject {
         int px = cursor.x;
         int py = cursor.y;
         int boxHeight = 0;
-        if (lastSectionPlottedInRow != null) {
-          todo("add style element for small padding between text elements and bars");
-          px += 3;
-        }
-        if (rowContainsChords) {
+        if (lastSectionPlottedInRow != null)
+          px += smallPadding(style);
+        if (rowContainsChords)
           boxHeight = style.chordHeight;
-        }
         IPoint stringSize = renderString(section.type(), section.textArg(), style, boxHeight,
             new IPoint(px, py));
         size = new IPoint(px - cursor.x + stringSize.x, stringSize.y);
@@ -147,8 +144,7 @@ public final class PagePlotter extends BaseObject {
       case CHORD_SEQUENCE: {
         int xPadding = 0;
         if (lastSectionPlottedInRow != null) {
-          todo("add style element for small padding between text elements and bars");
-          xPadding += 3;
+          xPadding += smallPadding(style);
         }
         List<List<Chord>> barLists = arrayList();
         extractChordsForBars(section.chords(), beatsPerBar, barLists);
@@ -186,6 +182,10 @@ public final class PagePlotter extends BaseObject {
       }
 
     }
+  }
+
+  private static int smallPadding(Style style) {
+    return style.barPadX / 3;
   }
 
   public int plotChord(Chord chord, Style style, IPoint loc) {
