@@ -14,7 +14,6 @@ import java.util.List;
 import jmus.gen.Chord;
 import jmus.gen.ChordType;
 import jmus.gen.MusicKey;
-import jmus.gen.MusicLine;
 import jmus.gen.MusicSection;
 import jmus.gen.Song;
 import js.base.BaseObject;
@@ -85,34 +84,34 @@ public final class PagePlotter extends BaseObject {
       case T_TITLE:
       case T_SUBTITLE:
       case T_TEXT:
-      case T_SMALLTEXT: 
+      case T_SMALLTEXT:
         size = renderString(section.type(), section.text(), style, cursor);
         break;
 
       case 0: {
-        List<List<MusicLine>> barLists = arrayList();
+        List<List<Chord>> barLists = arrayList();
 
         {
           todo("this needs simplification");
-          for (MusicLine line : section.lines()) {
-            List<MusicLine> chordsWithinBarsList = extractChordsForBars(line, section.beatsPerBar());
-            barLists.add(chordsWithinBarsList);
+          for (Chord chord : section.chords()) {
+            List<List<Chord>> chordsWithinBarsList = extractChordsForBars(chord, section.beatsPerBar());
+            barLists.addAll(chordsWithinBarsList);
           }
         }
 
         int barHeight = style.chordHeight + 1 * style.barPadY;
 
-        // Loop over each music line in the song
+        // Loop over each bar in the song
 
         IPoint lineLoc = cursor;
         int widthMax = 0;
-        for (List<MusicLine> barList : barLists) {
+        for (List<Chord> barList : barLists) {
 
           // Loop over each set of chords in each bar
 
           IPoint barLoc = lineLoc;
-          for (MusicLine bars : barList) {
-            int barWidth = (style.meanChordWidthPixels + style.chordPadX) * bars.chords().size()
+          //for (MusicLine bars : barList) {
+            int barWidth = (style.meanChordWidthPixels + style.chordPadX) * barList.size()
                 + style.chordPadX;
             style.paintBarFrame.apply(graphics());
             rect(graphics(), lineLoc.x, lineLoc.y, barWidth, barHeight);
@@ -122,12 +121,12 @@ public final class PagePlotter extends BaseObject {
 
             // Loop over each chord in this bar
 
-            for (Chord chord : bars.chords()) {
+            for (Chord chord : barList) {
               cx += plotChord(chord, style, new IPoint(cx, cy));
             }
 
             barLoc = barLoc.withX(cx + barWidth);
-          }
+           
           widthMax = Math.max(widthMax, barLoc.x - lineLoc.x);
           lineLoc = lineLoc.withY(lineLoc.y + barHeight);
         }
@@ -170,30 +169,33 @@ public final class PagePlotter extends BaseObject {
     return width + style.chordPadX;
   }
 
-  private List<MusicLine> extractChordsForBars(MusicLine line, int beatsPerBar) {
+  private List<List<Chord>> extractChordsForBars(Chord chord, int beatsPerBar) {
     // Split the line's chords into bars
-    List<MusicLine> barList = arrayList();
 
-    MusicLine.Builder currentBar = MusicLine.newBuilder();
-    for (Chord chord : line.chords()) {
+    List<List<Chord>> result = arrayList();
+    //List<Chord> barList = arrayList();
 
-      // If this chord is the start of a new bar, start a new bar list
-      if (chord.beatNumber() <= 0) {
-        padWithBeats(currentBar, beatsPerBar);
-        currentBar = MusicLine.newBuilder();
-        barList.add(currentBar);
-      }
-      currentBar.chords().add(chord);
+    List<Chord> currentBar = arrayList();
+    
+    // MusicLine.Builder currentBar = MusicLine.newBuilder();
+    // for (Chord chord : line.chords()) {
+
+    // If this chord is the start of a new bar, start a new bar list
+    if (chord.beatNumber() <= 0) {
+      padWithBeats(currentBar, beatsPerBar);
+      currentBar = arrayList();
+      result.add(currentBar);
     }
+    currentBar.add(chord);
     padWithBeats(currentBar, beatsPerBar);
-    return barList;
+    return result;
   }
 
-  private void padWithBeats(MusicLine.Builder bar, int beatsPerBar) {
+  private void padWithBeats(List<Chord> bar, int beatsPerBar) {
     if (bar == null || beatsPerBar == 0)
       return;
-    while (bar.chords().size() < beatsPerBar)
-      bar.chords().add(Chord.newBuilder().type(ChordType.BEAT));
+    while (bar.size() < beatsPerBar)
+      bar.add(Chord.newBuilder().type(ChordType.BEAT));
   }
 
   private TextEntry tx() {

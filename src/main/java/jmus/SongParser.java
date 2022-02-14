@@ -8,7 +8,6 @@ import java.io.File;
 import jmus.gen.Accidental;
 import jmus.gen.Chord;
 import jmus.gen.ChordType;
-import jmus.gen.MusicLine;
 import jmus.gen.MusicSection;
 import jmus.gen.OptType;
 import jmus.gen.Song;
@@ -35,8 +34,9 @@ public class SongParser extends BaseObject {
 
       int crs = consumeCR();
       if (crs != 0) {
-        flushMusicLine();
-        if (crs == 2)
+       todo("treat 2 or more CR's differently");
+        // flushMusicLine();
+       // if (crs == 2)
           flushMusicSection();
         continue;
       }
@@ -74,18 +74,18 @@ public class SongParser extends BaseObject {
           Chord.Builder c = readScalarChord();
           c.beatNumber(beatNumber);
           beatNumber++;
-          musicLine().chords().add(c.build());
+          musicSection().chords().add(c.build());
         }
       } else {
         Chord.Builder c = readScalarChord();
-        musicLine().chords().add(c.build());
+        musicSection().chords().add(c.build());
       }
     }
 
-    flushMusicLine();
+   // flushMusicLine();
     flushMusicSection();
     
-    //pr("parsed song:",INDENT,song());
+    pr("parsed song:",INDENT,song());
     return song().build();
   }
 
@@ -144,8 +144,8 @@ public class SongParser extends BaseObject {
   }
 
   private void flushMusicSection() {
-    flushMusicLine();
-    if (mMusicSectionBuilder != null && !musicSection().lines().isEmpty()) {
+//    flushMusicLine();
+    if (mMusicSectionBuilder != null && !musicSection().chords().isEmpty()) {
       song().sections().add(musicSection().build());
       mMusicSectionBuilder = null;
     }
@@ -158,19 +158,19 @@ public class SongParser extends BaseObject {
     return mMusicSectionBuilder;
   }
 
-  private MusicLine.Builder musicLine() {
-    if (mMusicLineBuilder == null) {
-      mMusicLineBuilder = MusicLine.newBuilder();
-    }
-    return mMusicLineBuilder;
-  }
+//  private MusicLine.Builder musicLine() {
+//    if (mMusicLineBuilder == null) {
+//      mMusicLineBuilder = MusicLine.newBuilder();
+//    }
+//    return mMusicLineBuilder;
+//  }
 
-  private void flushMusicLine() {
-    if (mMusicLineBuilder != null && !mMusicLineBuilder.chords().isEmpty()) {
-      musicSection().lines().add(musicLine().build());
-      mMusicLineBuilder = null;
-    }
-  }
+//  private void flushMusicLine() {
+//    if (mMusicLineBuilder != null && !mMusicLineBuilder.chords().isEmpty()) {
+//      musicSection().lines().add(musicLine().build());
+//      mMusicLineBuilder = null;
+//    }
+//  }
 
   private int consumeCR() {
     int crCount = 0;
@@ -248,6 +248,5 @@ public class SongParser extends BaseObject {
   private Scanner mScanner;
   private Song.Builder mSongBuilder;
   private MusicSection.Builder mMusicSectionBuilder;
-  private MusicLine.Builder mMusicLineBuilder;
   private int mBeatsPerBar;
 }

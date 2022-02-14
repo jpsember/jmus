@@ -11,7 +11,6 @@ import java.util.Map;
 import jmus.gen.Chord;
 import jmus.gen.ChordType;
 import jmus.gen.MusicKey;
-import jmus.gen.MusicLine;
 import jmus.gen.MusicSection;
 import jmus.gen.Song;
 import js.file.Files;
@@ -224,17 +223,18 @@ public final class MusUtil {
 
     for (MusicSection section : song.sections()) {
       lineBuilder.append("\n");
-      for (MusicLine line : section.lines()) {
+      int chordNum = -1;
+      for (Chord chord: section.chords()) {
+        chordNum++;
+        //line : section.lines()) {
         int cursor = lineBuilder.length();
-        int chordNum = -1;
-        for (Chord chord : line.chords()) {
-          chordNum++;
+       // for (Chord chord : line.chords()) {
           tab(lineBuilder, cursor + chordNum * CHORD_COLUMN_SIZE);
           renderChord(chord, key, lineBuilder, chord.slashChord());
-        }
-        lineBuilder.append("\n");
+        //}
+       }
+      lineBuilder.append("\n");
       }
-    }
 
     return lineBuilder.toString();
   }

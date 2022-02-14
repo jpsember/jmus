@@ -4,5 +4,6 @@ fields {
 
   int beats_per_bar;
 
-  *MusicLine lines;
+  *Chord chords;
+  //*MusicLine lines;
 }
