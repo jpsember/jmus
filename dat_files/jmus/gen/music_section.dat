@@ -2,9 +2,11 @@ enum SectionType;
 
 fields {
   SectionType type;
-  string text;
 
-  int beats_per_bar;
+  // Optional arguments (SectionType specific)
+  //
+  ?string text_arg;
+  ?int    int_arg;
 
   *Chord chords;
 }

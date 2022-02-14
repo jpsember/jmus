@@ -8,6 +8,7 @@ enum {
   small_text,
 
   key,
+  beats,
 
   line_break,
   paragraph_break,

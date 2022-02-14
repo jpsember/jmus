@@ -38,9 +38,7 @@ public class SongParser extends BaseObject {
         String keyString = readAndParseString();
         flushMusicSection();
 
-        song().sections().add(MusicSection.newBuilder()//
-            .type(SectionType.KEY).text(keyString) //
-            .build());
+        addSection(newSec(SectionType.KEY).textArg(keyString));
         continue;
       }
 
@@ -70,7 +68,8 @@ public class SongParser extends BaseObject {
 
       if (peekIf(T_BEATS)) {
         flushMusicSection();
-        mBeatsPerBar = Integer.parseInt(chompPrefix(mScanner.read().text(), "beats:"));
+        int beats = Integer.parseInt(chompPrefix(mScanner.read().text(), "beats:"));
+        addSection(newSec(SectionType.BEATS).intArg(beats));
         continue;
       }
 
@@ -92,7 +91,6 @@ public class SongParser extends BaseObject {
     }
 
     flushMusicSection();
-    // halt("parsed song:", INDENT, song());
     return song().build();
   }
 
@@ -134,10 +132,12 @@ public class SongParser extends BaseObject {
     processPendingBreak();
     String s = mScanner.read(T_STRING).text();
     s = parseStringText(s);
-    song().sections().add(MusicSection.newBuilder()//
-        .type(type).text(s) //
-        .build());
+    addSection(newSec(type).textArg(s));
     setRecentPlotElementFlag();
+  }
+
+  private static MusicSection.Builder newSec(SectionType type) {
+    return MusicSection.newBuilder().type(type);
   }
 
   private void setRecentPlotElementFlag() {
@@ -195,9 +195,13 @@ public class SongParser extends BaseObject {
 
   private void flushMusicSection() {
     if (hasCurrentMusicSection()) {
-      song().sections().add(musicSection().build());
+      addSection(musicSection());
       mMusicSectionBuilder = null;
     }
+  }
+
+  private void addSection(MusicSection section) {
+    song().sections().add(section.build());
   }
 
   /**
@@ -210,15 +214,14 @@ public class SongParser extends BaseObject {
     if (mRecentPlotElement) {
       mRecentPlotElement = false;
       flushMusicSection();
-      song().sections().add(mPendingBreakType == 2 ? PARAGRAPH_BREAK : LINE_BREAK);
+      addSection(mPendingBreakType == 2 ? PARAGRAPH_BREAK : LINE_BREAK);
     }
     mPendingBreakType = 0;
   }
 
   private MusicSection.Builder musicSection() {
     if (mMusicSectionBuilder == null)
-      mMusicSectionBuilder = MusicSection.newBuilder().beatsPerBar(mBeatsPerBar)
-          .type(SectionType.CHORD_SEQUENCE);
+      mMusicSectionBuilder = newSec(SectionType.CHORD_SEQUENCE);
     return mMusicSectionBuilder;
   }
 
@@ -285,17 +288,15 @@ public class SongParser extends BaseObject {
     }
   }
 
-  private static final MusicSection LINE_BREAK = MusicSection.newBuilder().type(SectionType.LINE_BREAK)
-      .build();
-  private static final MusicSection PARAGRAPH_BREAK = MusicSection.newBuilder()
-      .type(SectionType.PARAGRAPH_BREAK).build();
+  private static final MusicSection LINE_BREAK = newSec(SectionType.LINE_BREAK).build();
+  private static final MusicSection PARAGRAPH_BREAK = newSec(SectionType.PARAGRAPH_BREAK).build();
 
   private File mSourceFile;
 
   private Scanner mScanner;
   private Song.Builder mSongBuilder;
   private MusicSection.Builder mMusicSectionBuilder;
-  private int mBeatsPerBar;
+  //  private int mBeatsPerBar;
 
   // 0: none 1: line 2: paragraph
   private int mPendingBreakType;

@@ -71,6 +71,7 @@ public final class PagePlotter extends BaseObject {
     IPoint cursor = PAGE_CONTENT.location();
 
     int rowHeight = 0;
+    int beatsPerBar = 0;
 
     for (MusicSection section : song.sections()) {
 
@@ -82,30 +83,34 @@ public final class PagePlotter extends BaseObject {
       default:
         throw notSupported("unsupported section type:", section);
 
+      case BEATS:
+        beatsPerBar = section.intArg();
+        break;
+
       case LINE_BREAK:
         cursor = new IPoint(PAGE_CONTENT.x, cursor.y + rowHeight);
         rowHeight = 0;
         break;
-        
+
       case PARAGRAPH_BREAK:
         cursor = new IPoint(PAGE_CONTENT.x, cursor.y + rowHeight * 2);
         rowHeight = 0;
         break;
 
       case KEY:
-        mKey = musicKey(section.text());
+        mKey = musicKey(section.textArg());
         break;
 
       case TITLE:
       case SUBTITLE:
       case TEXT:
       case SMALL_TEXT:
-        size = renderString(section.type(), section.text(), style, cursor);
+        size = renderString(section.type(), section.textArg(), style, cursor);
         break;
 
       case CHORD_SEQUENCE: {
         List<List<Chord>> barLists = arrayList();
-        extractChordsForBars(section.chords(), section.beatsPerBar(), barLists);
+        extractChordsForBars(section.chords(), beatsPerBar, barLists);
         int barHeight = style.chordHeight + 1 * style.barPadY;
 
         IPoint lineLoc = cursor;
