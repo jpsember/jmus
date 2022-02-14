@@ -127,20 +127,34 @@ public final class PagePlotter extends BaseObject {
       case SUBTITLE:
       case TEXT:
       case SMALL_TEXT: {
-        todo(
-            "If not starting on fresh line, add some padding, and maybe plot so baseline is aligned with previous chord");
-
-        size = renderString(section.type(), section.textArg(), style, cursor);
+        int px = cursor.x;
+        int py = cursor.y;
+        int boxHeight = 0;
+        if (lastSectionPlottedInRow != null) {
+          todo("add style element for small padding between text elements and bars");
+          px += 3;
+        }
+        if (rowContainsChords) {
+          boxHeight = style.chordHeight;
+        }
+        IPoint stringSize = renderString(section.type(), section.textArg(), style, boxHeight,
+            new IPoint(px, py));
+        size = new IPoint(px - cursor.x + stringSize.x, stringSize.y);
         lastSectionPlottedInRow = section.type();
       }
         break;
 
       case CHORD_SEQUENCE: {
+        int xPadding = 0;
+        if (lastSectionPlottedInRow != null) {
+          todo("add style element for small padding between text elements and bars");
+          xPadding += 3;
+        }
         List<List<Chord>> barLists = arrayList();
         extractChordsForBars(section.chords(), beatsPerBar, barLists);
         int barHeight = style.chordHeight + 1 * style.barPadY;
 
-        IPoint lineLoc = cursor;
+        IPoint lineLoc = cursor.sumWith(xPadding, 0);
         IPoint barLoc = lineLoc;
 
         for (List<Chord> barList : barLists) {
@@ -150,8 +164,6 @@ public final class PagePlotter extends BaseObject {
 
           int cx = barLoc.x + style.barPadX;
           int cy = barLoc.y + style.barPadY;
-
-          // Loop over each chord in this bar
 
           for (Chord chord : barList) {
             IPoint loc = new IPoint(cx, cy);
@@ -234,7 +246,7 @@ public final class PagePlotter extends BaseObject {
     return b;
   }
 
-  private IPoint renderString(SectionType type, String text, Style style, IPoint loc) {
+  private IPoint renderString(SectionType type, String text, Style style, int boxHeight, IPoint loc) {
     Graphics2D g = graphics();
     Paint pt;
     boolean center = false;
@@ -262,7 +274,11 @@ public final class PagePlotter extends BaseObject {
 
     int width = f.stringWidth(text);
     int x = loc.x;
-    int y = loc.y + f.getAscent();
+    int y;
+    if (boxHeight != 0)
+      y = loc.y + boxHeight;
+    else
+      y = loc.y + f.getAscent();
 
     if (center)
       x = PAGE_CONTENT.midX() - width / 2;
