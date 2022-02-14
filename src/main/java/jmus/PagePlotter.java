@@ -63,6 +63,7 @@ public final class PagePlotter extends BaseObject {
   }
 
   public void plotSong(Song song, int styleNumber) {
+   todo("seems to be bigger paragraph breaks after chords?");
     Style style = style(styleNumber);
 
     Graphics2D g = graphics();

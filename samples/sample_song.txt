@@ -1,18 +1,30 @@
- title "Hello"
- subtitle "Elton John"
-//smalltext "Original Key: E♭"
 
+title "Your Song"
 
-beats:4
+subtitle "Elton John"
+smalltext "Original Key: E♭"
 
-//"Verse"
+//key:"e-flat"
 
-//"This is some text without a paragraph break"
-//1     47                    5/7           3-
-//6-    (6-/5 2 2 3)          6-/#4         47 \
-//"This should be joined to right"
-"This is some text without a paragraph break"
+"Intro"
+1 4/1 5/1 4/1
 
-//"This is some text with a paragraph break"
-"Notes:" \
-1     47                   "more:" 5/7           3-
+"Verse"
+1 47 5/7 3-
+6- 6-/5 6-/#4 47
+1/5 5 27 6-
+1 2-7 4 "1:" 5 5  "2:" 1 1
+
+"Chorus"
+5/7 6- 2- 4
+5/7 6- 2- 4
+6- 6-/5 6-/#4 47 47
+1 2- 4 5 5
+"2:"
+6- 6-/5 6-/#4 47 47
+1 2- 4 1
+
+"Outro"
+1 4/1 5/1 4/1
+
+smalltext "Intro / Verse1 / Verse2 / Chorus1 / Intro / Verse1 / Verse2 / Chorus2 / Outro"
