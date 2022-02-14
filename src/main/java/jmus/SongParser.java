@@ -90,13 +90,11 @@ public class SongParser extends BaseObject {
   }
 
   private void parseText(int textType) {
-    boolean flushed = flushMusicLine();
     flushMusicSection();
     String s = mScanner.read(T_STRING).text();
     s = parseStringText(s);
     song().sections().add(MusicSection.newBuilder()//
         .type(textType).text(s) //
-        .sameLine(flushed) //
         .build());
   }
 
@@ -167,13 +165,11 @@ public class SongParser extends BaseObject {
     return mMusicLineBuilder;
   }
 
-  private boolean flushMusicLine() {
-    boolean flushed = !musicLine().chords().isEmpty();
-    if (flushed) {
+  private void flushMusicLine() {
+    if (mMusicLineBuilder != null && !mMusicLineBuilder.chords().isEmpty()) {
       musicSection().lines().add(musicLine().build());
       mMusicLineBuilder = null;
     }
-    return flushed;
   }
 
   private int consumeCR() {

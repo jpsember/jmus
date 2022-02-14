@@ -68,10 +68,12 @@ public final class PagePlotter extends BaseObject {
     Graphics2D g = graphics();
     PAINT_NORMAL.apply(g);
 
-    IPoint pastBarPt = null;
+    IPoint cursor = PAGE_CONTENT.location();
 
-    int y = PAGE_CONTENT.y;
     for (MusicSection section : song.sections()) {
+
+      IPoint size = null;
+
       switch (section.type()) {
       default:
         throw notSupported("unsupported section type:", section);
@@ -83,34 +85,18 @@ public final class PagePlotter extends BaseObject {
       case T_TITLE:
       case T_SUBTITLE:
       case T_TEXT:
-      case T_SMALLTEXT: {
-        IPoint plotLoc;
-        boolean sameLine = section.sameLine() && pastBarPt != null;
-        if (sameLine)
-          plotLoc = pastBarPt.sumWith(style.barPadX, 0);
-        else
-          plotLoc = new IPoint(PAGE_CONTENT.x, y);
-
-        int adv = renderString(section.type(), section.text(), style, plotLoc, sameLine);
-        if (!sameLine)
-          y += adv;
-      }
+      case T_SMALLTEXT: 
+        size = renderString(section.type(), section.text(), style, cursor);
         break;
 
       case 0: {
         List<List<MusicLine>> barLists = arrayList();
-        int[] maxChordsPerBar = new int[50];
 
-        // Determine chord sets within each bar, and the maximum size of each such set
         {
+          todo("this needs simplification");
           for (MusicLine line : section.lines()) {
             List<MusicLine> chordsWithinBarsList = extractChordsForBars(line, section.beatsPerBar());
             barLists.add(chordsWithinBarsList);
-            int j = -1;
-            for (MusicLine m : chordsWithinBarsList) {
-              j++;
-              maxChordsPerBar[j] = Math.max(maxChordsPerBar[j], m.chords().size());
-            }
           }
         }
 
@@ -118,23 +104,21 @@ public final class PagePlotter extends BaseObject {
 
         // Loop over each music line in the song
 
+        IPoint lineLoc = cursor;
+        int widthMax = 0;
         for (List<MusicLine> barList : barLists) {
 
           // Loop over each set of chords in each bar
 
-          int barNum = -1;
-          int barX = PAGE_CONTENT.x;
-
+          IPoint barLoc = lineLoc;
           for (MusicLine bars : barList) {
-            barNum++;
-
-            int barWidth = (style.meanChordWidthPixels + style.chordPadX) * maxChordsPerBar[barNum]
+            int barWidth = (style.meanChordWidthPixels + style.chordPadX) * bars.chords().size()
                 + style.chordPadX;
             style.paintBarFrame.apply(graphics());
-            rect(graphics(), barX, y, barWidth, barHeight);
+            rect(graphics(), lineLoc.x, lineLoc.y, barWidth, barHeight);
 
-            int cx = barX + style.barPadX;
-            int cy = y + style.barPadY;
+            int cx = barLoc.x + style.barPadX;
+            int cy = barLoc.y + style.barPadY;
 
             // Loop over each chord in this bar
 
@@ -142,16 +126,21 @@ public final class PagePlotter extends BaseObject {
               cx += plotChord(chord, style, new IPoint(cx, cy));
             }
 
-            barX += barWidth;
+            barLoc = barLoc.withX(cx + barWidth);
           }
-          y += barHeight;
-          pastBarPt = new IPoint(barX, y);
+          widthMax = Math.max(widthMax, barLoc.x - lineLoc.x);
+          lineLoc = lineLoc.withY(lineLoc.y + barHeight);
         }
 
-        y += style.spacingBetweenSections;
+        size = new IPoint(widthMax, lineLoc.y - cursor.y);
       }
         break;
       }
+
+      if (size != null) {
+        cursor = cursor.sumWith(0, size.y);
+      }
+
     }
   }
 
@@ -213,7 +202,7 @@ public final class PagePlotter extends BaseObject {
     return b;
   }
 
-  private int renderString(int type, String text, Style style, IPoint loc, boolean plotAbove) {
+  private IPoint renderString(int type, String text, Style style, IPoint loc) {
     Graphics2D g = graphics();
     Paint pt;
     boolean center = false;
@@ -239,17 +228,16 @@ public final class PagePlotter extends BaseObject {
     pt.apply(graphics());
     FontMetrics f = g.getFontMetrics();
 
+    int width = f.stringWidth(text);
     int x = loc.x;
-    int y = loc.y;
-    if (!plotAbove)
-      y = y + f.getAscent();
+    int y = loc.y + f.getAscent();
 
     if (center)
-      x = PAGE_CONTENT.midX() - f.stringWidth(text) / 2;
+      x = PAGE_CONTENT.midX() - width / 2;
+    todo("Figure out how to deal with centering");
 
     g.drawString(text, x, y);
-
-    return f.getHeight() + style.spacingBetweenSections / 3;
+    return new IPoint(width, f.getHeight());
   }
 
   private static int renderTextEntries(Graphics2D g, Style style, Collection<TextEntry> textEntries,
