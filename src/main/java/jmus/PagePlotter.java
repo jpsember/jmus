@@ -82,8 +82,13 @@ public final class PagePlotter extends BaseObject {
       default:
         throw notSupported("unsupported section type:", section);
 
-      case NEWLINE:
+      case LINE_BREAK:
         cursor = new IPoint(PAGE_CONTENT.x, cursor.y + rowHeight);
+        rowHeight = 0;
+        break;
+        
+      case PARAGRAPH_BREAK:
+        cursor = new IPoint(PAGE_CONTENT.x, cursor.y + rowHeight * 2);
         rowHeight = 0;
         break;
 

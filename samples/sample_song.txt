@@ -8,5 +8,9 @@ beats:4
 
 "Verse"
 
+"This is some text without a paragraph break"
 1 47 5/7 3-
 6- 6-/5 6-/#4 47
+"This is some text without a paragraph break"
+
+"This is some text with a paragraph break"

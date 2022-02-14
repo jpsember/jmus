@@ -19,32 +19,20 @@ import js.parsing.Token;
 
 public class SongParser extends BaseObject {
 
-  // TODO: add song title
-  // TODO: add auxilliary info (or arbitrary text), e.g. time signature, author, section title, section footer
-
   public SongParser(File sourceFile) {
     mSourceFile = sourceFile;
   }
 
-  private static final MusicSection NEWLINE = MusicSection.newBuilder().type(SectionType.NEWLINE).build();
-
   public Song parse() {
-
     mScanner = new Scanner(dfa(), Files.readString(mSourceFile));
     mScanner.setSourceDescription(mSourceFile.getName());
 
-    //mScanner.alertVerbose();
+    mScanner.alertVerbose();
+
     while (mScanner.hasNext()) {
 
-      int crs = consumeCR();
-      if (crs != 0) {
-        todo("treat 2 or more CR's differently");
-        // flushMusicLine();
-        // if (crs == 2)
-        flushMusicSection();
-        song().sections().add(NEWLINE);
+      if (consumeBreakTokens())
         continue;
-      }
 
       if (readIf(T_KEY)) {
         String keyString = readAndParseString();
@@ -81,9 +69,12 @@ public class SongParser extends BaseObject {
       }
 
       if (peekIf(T_BEATS)) {
+        flushMusicSection();
         mBeatsPerBar = Integer.parseInt(chompPrefix(mScanner.read().text(), "beats:"));
         continue;
       }
+
+      processPendingBreak();
 
       if (readIf(T_PAROP)) {
         int beatNumber = 0;
@@ -97,20 +88,60 @@ public class SongParser extends BaseObject {
         Chord.Builder c = readScalarChord();
         musicSection().chords().add(c.build());
       }
+      setRecentPlotElementFlag();
     }
 
     flushMusicSection();
-    //halt("parsed song:", INDENT, song());
+    // halt("parsed song:", INDENT, song());
     return song().build();
+  }
+
+  /**
+   * Consume zero or more linefeeds or '\' tokens, and update the pending break
+   * type
+   * 
+   * @return true if it found any such tokens
+   */
+  private boolean consumeBreakTokens() {
+    boolean found = false;
+    boolean joinFlag = false;
+    {
+      int crCount = 0;
+      while (true) {
+        if (readIf(T_CR)) {
+          found = true;
+          crCount++;
+          mScanner.log("cr, count now:", crCount);
+        } else if (readIf(T_BWD_SLASH)) {
+          found = true;
+          joinFlag = true;
+          mScanner.log("backslash, join flag now true");
+        } else
+          break;
+      }
+      if (found) {
+        if (!joinFlag) {
+          mPendingBreakType = Math.min(crCount, 2);
+        }
+        mScanner.log("joinflag:", joinFlag, "crcount:", crCount, "pending break:", mPendingBreakType);
+      }
+    }
+    return found;
   }
 
   private void parseText(SectionType type) {
     flushMusicSection();
+    processPendingBreak();
     String s = mScanner.read(T_STRING).text();
     s = parseStringText(s);
     song().sections().add(MusicSection.newBuilder()//
         .type(type).text(s) //
         .build());
+    setRecentPlotElementFlag();
+  }
+
+  private void setRecentPlotElementFlag() {
+    mRecentPlotElement = true;
   }
 
   private String readAndParseString() {
@@ -158,11 +189,30 @@ public class SongParser extends BaseObject {
     return mSongBuilder;
   }
 
+  private boolean hasCurrentMusicSection() {
+    return (mMusicSectionBuilder != null && !musicSection().chords().isEmpty());
+  }
+
   private void flushMusicSection() {
-    if (mMusicSectionBuilder != null && !musicSection().chords().isEmpty()) {
+    if (hasCurrentMusicSection()) {
       song().sections().add(musicSection().build());
       mMusicSectionBuilder = null;
     }
+  }
+
+  /**
+   * Insert a pending line or paragraph break, if appropriate, in anticipation
+   * of a new visual component
+   */
+  private void processPendingBreak() {
+    if (mPendingBreakType == 0)
+      return;
+    if (mRecentPlotElement) {
+      mRecentPlotElement = false;
+      flushMusicSection();
+      song().sections().add(mPendingBreakType == 2 ? PARAGRAPH_BREAK : LINE_BREAK);
+    }
+    mPendingBreakType = 0;
   }
 
   private MusicSection.Builder musicSection() {
@@ -170,14 +220,6 @@ public class SongParser extends BaseObject {
       mMusicSectionBuilder = MusicSection.newBuilder().beatsPerBar(mBeatsPerBar)
           .type(SectionType.CHORD_SEQUENCE);
     return mMusicSectionBuilder;
-  }
-
-  private int consumeCR() {
-    int crCount = 0;
-    while (mScanner.readIf(T_CR) != null) {
-      crCount++;
-    }
-    return Math.min(crCount, 2);
   }
 
   private Chord.Builder parseChord() {
@@ -243,10 +285,21 @@ public class SongParser extends BaseObject {
     }
   }
 
+  private static final MusicSection LINE_BREAK = MusicSection.newBuilder().type(SectionType.LINE_BREAK)
+      .build();
+  private static final MusicSection PARAGRAPH_BREAK = MusicSection.newBuilder()
+      .type(SectionType.PARAGRAPH_BREAK).build();
+
   private File mSourceFile;
 
   private Scanner mScanner;
   private Song.Builder mSongBuilder;
   private MusicSection.Builder mMusicSectionBuilder;
   private int mBeatsPerBar;
+
+  // 0: none 1: line 2: paragraph
+  private int mPendingBreakType;
+
+  // true if there is a previous plot element that a line or paragraph break can be separated from
+  private boolean mRecentPlotElement;
 }
