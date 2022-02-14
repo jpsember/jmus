@@ -1,9 +1,0 @@
-// A sequence of chords representing a single line within a music section
-//
-
-// Let's deprecate this !
-
-
-fields {
-  *Chord chords;
-}

@@ -1,0 +1,12 @@
+enum {
+  unknown,
+  chord_sequence,
+
+  title,
+  subtitle,
+  text,
+  small_text,
+
+  key,
+  newline,
+}

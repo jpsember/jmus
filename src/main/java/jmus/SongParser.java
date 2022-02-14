@@ -10,6 +10,7 @@ import jmus.gen.Chord;
 import jmus.gen.ChordType;
 import jmus.gen.MusicSection;
 import jmus.gen.OptType;
+import jmus.gen.SectionType;
 import jmus.gen.Song;
 import js.base.BaseObject;
 import js.file.Files;
@@ -25,19 +26,23 @@ public class SongParser extends BaseObject {
     mSourceFile = sourceFile;
   }
 
+  private static final MusicSection NEWLINE = MusicSection.newBuilder().type(SectionType.NEWLINE).build();
+
   public Song parse() {
 
     mScanner = new Scanner(dfa(), Files.readString(mSourceFile));
     mScanner.setSourceDescription(mSourceFile.getName());
 
+    //mScanner.alertVerbose();
     while (mScanner.hasNext()) {
 
       int crs = consumeCR();
       if (crs != 0) {
-       todo("treat 2 or more CR's differently");
+        todo("treat 2 or more CR's differently");
         // flushMusicLine();
-       // if (crs == 2)
-          flushMusicSection();
+        // if (crs == 2)
+        flushMusicSection();
+        song().sections().add(NEWLINE);
         continue;
       }
 
@@ -46,7 +51,7 @@ public class SongParser extends BaseObject {
         flushMusicSection();
 
         song().sections().add(MusicSection.newBuilder()//
-            .type(T_KEY).text(keyString) //
+            .type(SectionType.KEY).text(keyString) //
             .build());
         continue;
       }
@@ -54,12 +59,24 @@ public class SongParser extends BaseObject {
       // If a string is found, assume it is 'text'
       //
       if (peekIf(T_STRING)) {
-        parseText(T_TEXT);
+        parseText(SectionType.TEXT);
         continue;
       }
 
-      if (peekIf(T_TITLE) || peekIf(T_SUBTITLE) || peekIf(T_TEXT) || peekIf(T_SMALLTEXT)) {
-        parseText(mScanner.read().id());
+      if (readIf(T_TITLE)) {
+        parseText(SectionType.TITLE);
+        continue;
+      }
+      if (readIf(T_SUBTITLE)) {
+        parseText(SectionType.SUBTITLE);
+        continue;
+      }
+      if (readIf(T_TEXT)) {
+        parseText(SectionType.TEXT);
+        continue;
+      }
+      if (readIf(T_SMALLTEXT)) {
+        parseText(SectionType.SMALL_TEXT);
         continue;
       }
 
@@ -82,19 +99,17 @@ public class SongParser extends BaseObject {
       }
     }
 
-   // flushMusicLine();
     flushMusicSection();
-    
-    pr("parsed song:",INDENT,song());
+    //halt("parsed song:", INDENT, song());
     return song().build();
   }
 
-  private void parseText(int textType) {
+  private void parseText(SectionType type) {
     flushMusicSection();
     String s = mScanner.read(T_STRING).text();
     s = parseStringText(s);
     song().sections().add(MusicSection.newBuilder()//
-        .type(textType).text(s) //
+        .type(type).text(s) //
         .build());
   }
 
@@ -144,7 +159,6 @@ public class SongParser extends BaseObject {
   }
 
   private void flushMusicSection() {
-//    flushMusicLine();
     if (mMusicSectionBuilder != null && !musicSection().chords().isEmpty()) {
       song().sections().add(musicSection().build());
       mMusicSectionBuilder = null;
@@ -152,25 +166,11 @@ public class SongParser extends BaseObject {
   }
 
   private MusicSection.Builder musicSection() {
-    if (mMusicSectionBuilder == null) {
-      mMusicSectionBuilder = MusicSection.newBuilder().beatsPerBar(mBeatsPerBar);
-    }
+    if (mMusicSectionBuilder == null)
+      mMusicSectionBuilder = MusicSection.newBuilder().beatsPerBar(mBeatsPerBar)
+          .type(SectionType.CHORD_SEQUENCE);
     return mMusicSectionBuilder;
   }
-
-//  private MusicLine.Builder musicLine() {
-//    if (mMusicLineBuilder == null) {
-//      mMusicLineBuilder = MusicLine.newBuilder();
-//    }
-//    return mMusicLineBuilder;
-//  }
-
-//  private void flushMusicLine() {
-//    if (mMusicLineBuilder != null && !mMusicLineBuilder.chords().isEmpty()) {
-//      musicSection().lines().add(musicLine().build());
-//      mMusicLineBuilder = null;
-//    }
-//  }
 
   private int consumeCR() {
     int crCount = 0;

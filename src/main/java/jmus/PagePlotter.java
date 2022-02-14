@@ -15,6 +15,7 @@ import jmus.gen.Chord;
 import jmus.gen.ChordType;
 import jmus.gen.MusicKey;
 import jmus.gen.MusicSection;
+import jmus.gen.SectionType;
 import jmus.gen.Song;
 import js.base.BaseObject;
 import js.file.Files;
@@ -69,75 +70,69 @@ public final class PagePlotter extends BaseObject {
 
     IPoint cursor = PAGE_CONTENT.location();
 
+    int rowHeight = 0;
+
     for (MusicSection section : song.sections()) {
 
+      // Size of section being processed, in pixels
       IPoint size = null;
 
       switch (section.type()) {
+
       default:
         throw notSupported("unsupported section type:", section);
 
-      case T_KEY:
+      case NEWLINE:
+        cursor = new IPoint(PAGE_CONTENT.x, cursor.y + rowHeight);
+        rowHeight = 0;
+        break;
+
+      case KEY:
         mKey = musicKey(section.text());
         break;
 
-      case T_TITLE:
-      case T_SUBTITLE:
-      case T_TEXT:
-      case T_SMALLTEXT:
+      case TITLE:
+      case SUBTITLE:
+      case TEXT:
+      case SMALL_TEXT:
         size = renderString(section.type(), section.text(), style, cursor);
         break;
 
-      case 0: {
+      case CHORD_SEQUENCE: {
         List<List<Chord>> barLists = arrayList();
-
-        {
-          todo("this needs simplification");
-          for (Chord chord : section.chords()) {
-            List<List<Chord>> chordsWithinBarsList = extractChordsForBars(chord, section.beatsPerBar());
-            barLists.addAll(chordsWithinBarsList);
-          }
-        }
-
+        extractChordsForBars(section.chords(), section.beatsPerBar(), barLists);
         int barHeight = style.chordHeight + 1 * style.barPadY;
 
-        // Loop over each bar in the song
-
         IPoint lineLoc = cursor;
-        int widthMax = 0;
+        IPoint barLoc = lineLoc;
+
         for (List<Chord> barList : barLists) {
+          int barWidth = (style.meanChordWidthPixels + style.chordPadX) * barList.size() + style.chordPadX;
+          style.paintBarFrame.apply(graphics());
+          rect(graphics(), barLoc.x, barLoc.y, barWidth, barHeight);
 
-          // Loop over each set of chords in each bar
+          int cx = barLoc.x + style.barPadX;
+          int cy = barLoc.y + style.barPadY;
 
-          IPoint barLoc = lineLoc;
-          //for (MusicLine bars : barList) {
-            int barWidth = (style.meanChordWidthPixels + style.chordPadX) * barList.size()
-                + style.chordPadX;
-            style.paintBarFrame.apply(graphics());
-            rect(graphics(), lineLoc.x, lineLoc.y, barWidth, barHeight);
+          // Loop over each chord in this bar
 
-            int cx = barLoc.x + style.barPadX;
-            int cy = barLoc.y + style.barPadY;
+          for (Chord chord : barList) {
+            IPoint loc = new IPoint(cx, cy);
+            cx += plotChord(chord, style, loc);
+          }
 
-            // Loop over each chord in this bar
-
-            for (Chord chord : barList) {
-              cx += plotChord(chord, style, new IPoint(cx, cy));
-            }
-
-            barLoc = barLoc.withX(cx + barWidth);
-           
-          widthMax = Math.max(widthMax, barLoc.x - lineLoc.x);
-          lineLoc = lineLoc.withY(lineLoc.y + barHeight);
+          barLoc = barLoc.sumWith(barWidth, 0);
         }
 
-        size = new IPoint(widthMax, lineLoc.y - cursor.y);
+        size = new IPoint(barLoc.x - cursor.x, barHeight);
+        lineLoc = lineLoc.withX(lineLoc.x + size.x);
       }
         break;
       }
 
       if (size != null) {
-        cursor = cursor.sumWith(0, size.y);
+        rowHeight = Math.max(rowHeight, size.y);
+        cursor = cursor.sumWith(size.x, 0);
       }
 
     }
@@ -169,30 +164,27 @@ public final class PagePlotter extends BaseObject {
     return width + style.chordPadX;
   }
 
-  private List<List<Chord>> extractChordsForBars(Chord chord, int beatsPerBar) {
-    // Split the line's chords into bars
-
-    List<List<Chord>> result = arrayList();
-    //List<Chord> barList = arrayList();
-
+  private void extractChordsForBars(List<Chord> chordList, int beatsPerBar, List<List<Chord>> barList) {
     List<Chord> currentBar = arrayList();
-    
-    // MusicLine.Builder currentBar = MusicLine.newBuilder();
-    // for (Chord chord : line.chords()) {
-
-    // If this chord is the start of a new bar, start a new bar list
-    if (chord.beatNumber() <= 0) {
-      padWithBeats(currentBar, beatsPerBar);
-      currentBar = arrayList();
-      result.add(currentBar);
+    for (Chord chord : chordList) {
+      // If this chord is the start of a new bar, start a new bar list
+      if (chord.beatNumber() <= 0) {
+        padWithBeats(currentBar, beatsPerBar);
+        if (!currentBar.isEmpty()) {
+          barList.add(currentBar);
+          currentBar = arrayList();
+        }
+      }
+      currentBar.add(chord);
     }
-    currentBar.add(chord);
     padWithBeats(currentBar, beatsPerBar);
-    return result;
+    if (!currentBar.isEmpty()) {
+      barList.add(currentBar);
+    }
   }
 
   private void padWithBeats(List<Chord> bar, int beatsPerBar) {
-    if (bar == null || beatsPerBar == 0)
+    if (beatsPerBar == 0 || bar.isEmpty())
       return;
     while (bar.size() < beatsPerBar)
       bar.add(Chord.newBuilder().type(ChordType.BEAT));
@@ -204,25 +196,25 @@ public final class PagePlotter extends BaseObject {
     return b;
   }
 
-  private IPoint renderString(int type, String text, Style style, IPoint loc) {
+  private IPoint renderString(SectionType type, String text, Style style, IPoint loc) {
     Graphics2D g = graphics();
     Paint pt;
     boolean center = false;
     switch (type) {
     default:
       throw notSupported("text type", type);
-    case T_TITLE:
+    case TITLE:
       center = true;
       pt = style.paintTitle;
       break;
-    case T_SUBTITLE:
+    case SUBTITLE:
       center = true;
       pt = style.paintSubtitle;
       break;
-    case T_TEXT:
+    case TEXT:
       pt = style.paintText;
       break;
-    case T_SMALLTEXT:
+    case SMALL_TEXT:
       pt = style.paintSmallText;
       break;
     }

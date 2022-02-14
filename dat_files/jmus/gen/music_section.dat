@@ -1,9 +1,10 @@
+enum SectionType;
+
 fields {
-  int type;
+  SectionType type;
   string text;
 
   int beats_per_bar;
 
   *Chord chords;
-  //*MusicLine lines;
 }
