@@ -26,8 +26,7 @@ public class SongParser extends BaseObject {
   public Song parse() {
     mScanner = new Scanner(dfa(), Files.readString(mSourceFile));
     mScanner.setSourceDescription(mSourceFile.getName());
-
-    mScanner.alertVerbose();
+    //mScanner.alertVerbose();
 
     while (mScanner.hasNext()) {
 
@@ -109,19 +108,15 @@ public class SongParser extends BaseObject {
         if (readIf(T_CR)) {
           found = true;
           crCount++;
-          mScanner.log("cr, count now:", crCount);
         } else if (readIf(T_BWD_SLASH)) {
           found = true;
           joinFlag = true;
-          mScanner.log("backslash, join flag now true");
         } else
           break;
       }
       if (found) {
-        if (!joinFlag) {
+        if (!joinFlag)
           mPendingBreakType = Math.min(crCount, 2);
-        }
-        mScanner.log("joinflag:", joinFlag, "crcount:", crCount, "pending break:", mPendingBreakType);
       }
     }
     return found;
@@ -296,7 +291,6 @@ public class SongParser extends BaseObject {
   private Scanner mScanner;
   private Song.Builder mSongBuilder;
   private MusicSection.Builder mMusicSectionBuilder;
-  //  private int mBeatsPerBar;
 
   // 0: none 1: line 2: paragraph
   private int mPendingBreakType;

@@ -72,8 +72,28 @@ public final class PagePlotter extends BaseObject {
 
     int rowHeight = 0;
     int beatsPerBar = 0;
+    // True if we're about to process song sections on a new row
+    boolean startOfRow = true;
+    // True if the current row contains some chords
+    boolean rowContainsChords = false;
+    SectionType lastSectionPlottedInRow = null;
 
+    int secNum = -1;
     for (MusicSection section : song.sections()) {
+      secNum++;
+
+      if (startOfRow) {
+        lastSectionPlottedInRow = null;
+        rowContainsChords = false;
+        for (int j = secNum; j < song.sections().size(); j++) {
+          MusicSection s = song.sections().get(j);
+          if (s.type() == SectionType.LINE_BREAK || s.type() == SectionType.PARAGRAPH_BREAK)
+            break;
+          if (s.type() == SectionType.CHORD_SEQUENCE)
+            rowContainsChords = true;
+        }
+        startOfRow = false;
+      }
 
       // Size of section being processed, in pixels
       IPoint size = null;
@@ -88,11 +108,13 @@ public final class PagePlotter extends BaseObject {
         break;
 
       case LINE_BREAK:
+        startOfRow = true;
         cursor = new IPoint(PAGE_CONTENT.x, cursor.y + rowHeight);
         rowHeight = 0;
         break;
 
       case PARAGRAPH_BREAK:
+        startOfRow = true;
         cursor = new IPoint(PAGE_CONTENT.x, cursor.y + rowHeight * 2);
         rowHeight = 0;
         break;
@@ -104,8 +126,13 @@ public final class PagePlotter extends BaseObject {
       case TITLE:
       case SUBTITLE:
       case TEXT:
-      case SMALL_TEXT:
+      case SMALL_TEXT: {
+        todo(
+            "If not starting on fresh line, add some padding, and maybe plot so baseline is aligned with previous chord");
+
         size = renderString(section.type(), section.textArg(), style, cursor);
+        lastSectionPlottedInRow = section.type();
+      }
         break;
 
       case CHORD_SEQUENCE: {
@@ -136,6 +163,7 @@ public final class PagePlotter extends BaseObject {
 
         size = new IPoint(barLoc.x - cursor.x, barHeight);
         lineLoc = lineLoc.withX(lineLoc.x + size.x);
+        lastSectionPlottedInRow = section.type();
       }
         break;
       }
