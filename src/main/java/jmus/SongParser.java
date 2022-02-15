@@ -41,20 +41,6 @@ public class SongParser extends BaseObject {
         continue;
       }
 
-      if (readIf(T_TAB)) {
-        flushMusicSection();
-        processPendingBreak();
-        addSection(newSec(SectionType.TAB));
-        continue;
-      }
-
-      if (readIf(T_TAB_CLEAR)) {
-        flushMusicSection();
-        processPendingBreak();
-        addSection(newSec(SectionType.TAB_CLEAR));
-        continue;
-      }
-
       // If a string is found, assume it is 'text'
       //
       if (peekIf(T_STRING)) {

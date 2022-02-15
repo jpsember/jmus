@@ -167,7 +167,7 @@ public final class MusUtil {
 
   public static final int T_WS = k(1), T_CR = k(), T_STRING = k(), T_CHORD = k(), T_FWD_SLASH = k(),
       T_PAROP = k(), T_PARCL = k(), T_PERIOD = k(), T_TITLE = k(), T_SUBTITLE = k(), T_TEXT = k(),
-      T_SMALLTEXT = k(), T_BEATS = k(), T_KEY = k(), T_BWD_SLASH = k(), T_TAB = k(), T_TAB_CLEAR = k();
+      T_SMALLTEXT = k(), T_BEATS = k(), T_KEY = k(), T_BWD_SLASH = k();
 
   // ------------------------------------------------------------------
   // Helper functions for initializing strictly increasing constants

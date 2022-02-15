@@ -80,8 +80,6 @@ public final class PagePlotter extends BaseObject {
     boolean rowContainsChords = false;
     int visibleSectionsInRow = 0;
     SectionType lastSectionPlottedInRow = null;
-    int tabIndex = 0;
-    List<Integer> tabPositions = arrayList();
 
     int secNum = -1;
     for (MusicSection section : song.sections()) {
@@ -91,7 +89,6 @@ public final class PagePlotter extends BaseObject {
         lastSectionPlottedInRow = null;
         rowContainsChords = false;
         visibleSectionsInRow = 0;
-        tabIndex = 0;
         for (int j = secNum; j < song.sections().size(); j++) {
           MusicSection s = song.sections().get(j);
           if (s.type() == SectionType.LINE_BREAK || s.type() == SectionType.PARAGRAPH_BREAK)
@@ -111,24 +108,6 @@ public final class PagePlotter extends BaseObject {
 
       default:
         throw notSupported("unsupported section type:", section);
-
-      case TAB_CLEAR:
-        tabPositions.clear();
-        tabIndex = 0;
-        break;
-
-      case TAB:
-        if (tabIndex == tabPositions.size()) {
-          tabPositions.add(cursor.x);
-        } else {
-          int tabX = tabPositions.get(tabIndex);
-          if (tabX > cursor.x) {
-            cursor = cursor.withX(tabX);
-          }
-          lastSectionPlottedInRow = null;
-        }
-        tabIndex++;
-        break;
 
       case BEATS:
         beatsPerBar = section.intArg();
