@@ -32,6 +32,7 @@ import static jmus.MusUtil.*;
 
 import jmus.gen.MusicKey;
 import jmus.gen.SongConfig;
+import jmus.gen.Stylenew;
 import jmus.gen.Song;
 import js.app.AppOper;
 import js.file.Files;

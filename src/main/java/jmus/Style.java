@@ -5,6 +5,7 @@ import static js.base.Tools.*;
 
 import java.util.List;
 
+import jmus.gen.Stylenew;
 import js.graphics.Paint;
 
 public final class Style {
@@ -42,6 +43,29 @@ public final class Style {
     paintText = text.build();
     paintSmallText = smallText.build();
     dashOffset = dashOff;
+    
+    
+    Stylenew.Builder b = Stylenew.newBuilder();
+    b.barPadX(barpx);
+    b.paintChord(  paintChord );
+    b.paintChordSmall(paintChordSmall );
+    b.paintBarFrame(paintBarFrame  );
+    b.meanChordWidthPixels(meanChordWidthPixels );
+   b. chordHeight (chordHt);
+b.dashHeight(    dashHeight );
+b.barPadX(barPadX);
+b.barPadY(barPadY);
+b.chordPadX(
+    chordPadX);
+b.spacingBetweenSections(  spaceBetwSect);
+b.paintTitle(
+    paintTitle  );
+   b.paintSubtitle( paintSubtitle );b.paintText(
+    paintText  );b.paintSmallText(
+    paintSmallText  );
+    b.dashOffset(
+    dashOffset );
+    pr(b);
   }
 
   private static final Paint ptChord = PAINT_NORMAL.toBuilder().font(FONT_PLAIN, 1.8f).build();
@@ -72,6 +96,8 @@ public final class Style {
 
       sStyles.add(new Style(ptChord, ptChordSmall, ptFrame, 35, 48, 3, 15, 10, 12, 34, ptTitle, ptSubtitle,
           ptText, ptSmallText, 10));
+      
+     
     }
     return sStyles;
   }

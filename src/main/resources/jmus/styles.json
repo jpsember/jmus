@@ -1,0 +1,164 @@
+{"":[
+{                "bar_pad_x" : 10,
+                 "bar_pad_y" : 7,
+              "chord_height" : 30,
+               "chord_pad_x" : 9,
+               "dash_height" : 2,
+               "dash_offset" : 14,
+   "mean_chord_width_pixels" : 26,
+           "paint_bar_frame" : { "color" : { "b" : 128,
+                                             "g" : 128,
+                                             "r" : 128
+                                           },
+                                  "font" : {  "name" : "Courier",
+                                              "size" : 18,
+                                             "style" : 0
+                                           },
+                                 "width" : 2.0
+                               },
+               "paint_chord" : { "color" : { "b" : 0,
+                                             "g" : 0,
+                                             "r" : 0
+                                           },
+                                  "font" : {  "name" : "Courier",
+                                              "size" : 22,
+                                             "style" : 0
+                                           },
+                                 "width" : 1.0
+                               },
+         "paint_chord_small" : { "color" : { "b" : 0,
+                                             "g" : 0,
+                                             "r" : 0
+                                           },
+                                  "font" : {  "name" : "Courier",
+                                              "size" : 14,
+                                             "style" : 0
+                                           },
+                                 "width" : 1.0
+                               },
+          "paint_small_text" : { "color" : { "b" : 0,
+                                             "g" : 0,
+                                             "r" : 0
+                                           },
+                                  "font" : {  "name" : "Chalkboard",
+                                              "size" : 11,
+                                             "style" : 0
+                                           },
+                                 "width" : 1.0
+                               },
+            "paint_subtitle" : { "color" : { "b" : 0,
+                                             "g" : 0,
+                                             "r" : 0
+                                           },
+                                  "font" : {  "name" : "Chalkboard",
+                                              "size" : 18,
+                                             "style" : 1
+                                           },
+                                 "width" : 1.0
+                               },
+                "paint_text" : { "color" : { "b" : 0,
+                                             "g" : 0,
+                                             "r" : 0
+                                           },
+                                  "font" : {  "name" : "Chalkboard",
+                                              "size" : 13,
+                                             "style" : 0
+                                           },
+                                 "width" : 1.0
+                               },
+               "paint_title" : { "color" : { "b" : 0,
+                                             "g" : 0,
+                                             "r" : 0
+                                           },
+                                  "font" : {  "name" : "Chalkboard",
+                                              "size" : 27,
+                                             "style" : 1
+                                           },
+                                 "width" : 1.0
+                               },
+  "spacing_between_sections" : 20
+},
+
+
+{                "bar_pad_x" : 15,
+                 "bar_pad_y" : 10,
+              "chord_height" : 48,
+               "chord_pad_x" : 12,
+               "dash_height" : 3,
+               "dash_offset" : 10,
+   "mean_chord_width_pixels" : 35,
+           "paint_bar_frame" : { "color" : { "b" : 128,
+                                             "g" : 128,
+                                             "r" : 128
+                                           },
+                                  "font" : {  "name" : "Courier",
+                                              "size" : 18,
+                                             "style" : 0
+                                           },
+                                 "width" : 3.0
+                               },
+               "paint_chord" : { "color" : { "b" : 0,
+                                             "g" : 0,
+                                             "r" : 0
+                                           },
+                                  "font" : {  "name" : "Courier",
+                                              "size" : 32,
+                                             "style" : 0
+                                           },
+                                 "width" : 1.0
+                               },
+         "paint_chord_small" : { "color" : { "b" : 0,
+                                             "g" : 0,
+                                             "r" : 0
+                                           },
+                                  "font" : {  "name" : "Courier",
+                                              "size" : 18,
+                                             "style" : 0
+                                           },
+                                 "width" : 1.0
+                               },
+          "paint_small_text" : { "color" : { "b" : 0,
+                                             "g" : 0,
+                                             "r" : 0
+                                           },
+                                  "font" : {  "name" : "Chalkboard",
+                                              "size" : 11,
+                                             "style" : 0
+                                           },
+                                 "width" : 1.0
+                               },
+            "paint_subtitle" : { "color" : { "b" : 0,
+                                             "g" : 0,
+                                             "r" : 0
+                                           },
+                                  "font" : {  "name" : "Chalkboard",
+                                              "size" : 18,
+                                             "style" : 1
+                                           },
+                                 "width" : 1.0
+                               },
+                "paint_text" : { "color" : { "b" : 0,
+                                             "g" : 0,
+                                             "r" : 0
+                                           },
+                                  "font" : {  "name" : "Chalkboard",
+                                              "size" : 13,
+                                             "style" : 0
+                                           },
+                                 "width" : 1.0
+                               },
+               "paint_title" : { "color" : { "b" : 0,
+                                             "g" : 0,
+                                             "r" : 0
+                                           },
+                                  "font" : {  "name" : "Chalkboard",
+                                              "size" : 27,
+                                             "style" : 1
+                                           },
+                                 "width" : 1.0
+                               },
+  "spacing_between_sections" : 34
+}
+
+]}
+

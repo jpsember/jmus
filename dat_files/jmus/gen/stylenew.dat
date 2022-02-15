@@ -1,0 +1,19 @@
+extern js.graphics.Paint;
+
+fields {
+  Paint paint_chord;
+  Paint paint_chord_small;
+  Paint paint_bar_frame;
+  int mean_chord_width_pixels;
+  int chord_height;
+  int dash_height;
+  int bar_pad_x;
+  int bar_pad_y;
+  int chord_pad_x;
+  int spacing_between_sections;
+  Paint paint_title;
+  Paint paint_subtitle;
+  Paint paint_text;
+  Paint paint_small_text;
+  int dash_offset;
+}
