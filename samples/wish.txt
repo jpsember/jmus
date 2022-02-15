@@ -1,33 +1,37 @@
+title "Wish You Were Here"
 
-// Wish you were here
+subtitle "Pink Floyd"
+smalltext "Original Key: G"
+
+beats:4
 
 
+"Intro and Outro"
+6- 1 6- 1
+6- 2 6- 2
+1 "Outro:" 1
+
+"Verse"
+4 5 2- 1
+5 4 2- 1
+
+
+smalltext "Intro / Intro over solo / Verse1 / Verse2 /Intro over solo / Verse3 / Outro to fade"
+
+smalltext "Option to plot song again, in a particular key?"
+
+
+""
+""
+""
+""
+""
+
+key: "g"
+
+6- 1 6- 1
+6- 2 6- 2
 1
-6- 1
-6- 1
-6- 2
-6- 2
-1
 
-4 5
-2- 1
-5 4
-2- 1
-
-4 5
-2- 1
-5 4
-2- 1
-
-6- 1
-6- 1
-6- 2
-6- 2
-
-1
-4 5
-2- 1
-5 4
-2- 5
-
-
+4 5 2- 1
+5 4 2- 1

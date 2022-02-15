@@ -59,7 +59,7 @@ public class SongOper extends AppOper {
 
     if (DEV) {
     //  generateQuiz();
-      mConfig = mConfig.toBuilder().input(new File("samples/sample_song.txt")).build();
+      mConfig = mConfig.toBuilder().input(new File("samples/wish.txt")).build();
       generateSong();
       return;
     }

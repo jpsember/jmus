@@ -209,7 +209,6 @@ public final class PagePlotter extends BaseObject {
       if (size != null) {
         rowHeight = Math.max(rowHeight, size.y);
         cursor = cursor.sumWith(size.x, 0);
-        pr("proc size:", size, "cursor now:", cursor);
       }
 
     }
