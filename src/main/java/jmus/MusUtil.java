@@ -165,10 +165,26 @@ public final class MusUtil {
 
   private static DFA mDFA;
 
-  private static int _k = 0;
-  public static final int T_WS = _k++, T_CR = _k++, T_STRING = _k++, T_CHORD = _k++, T_FWD_SLASH = _k++,
-      T_PAROP = _k++, T_PARCL = _k++, T_PERIOD = _k++, T_TITLE = _k++, T_SUBTITLE = _k++, T_TEXT = _k++,
-      T_SMALLTEXT = _k++, T_BEATS = _k++, T_KEY = _k++, T_BWD_SLASH = _k++, T_TAB = _k++;
+  public static final int T_WS = k(1), T_CR = k(), T_STRING = k(), T_CHORD = k(), T_FWD_SLASH = k(),
+      T_PAROP = k(), T_PARCL = k(), T_PERIOD = k(), T_TITLE = k(), T_SUBTITLE = k(), T_TEXT = k(),
+      T_SMALLTEXT = k(), T_BEATS = k(), T_KEY = k(), T_BWD_SLASH = k(), T_TAB = k(), T_TAB_CLEAR = k();
+
+  // ------------------------------------------------------------------
+  // Helper functions for initializing strictly increasing constants
+  // ------------------------------------------------------------------
+
+  private static int k(int initialValue) {
+    sIncrementingConstant = initialValue;
+    return initialValue;
+  }
+
+  private static int k() {
+    int result = sIncrementingConstant;
+    sIncrementingConstant++;
+    return result;
+  }
+
+  private static int sIncrementingConstant = 0;
 
   // ------------------------------------------------------------------
   // Rendering

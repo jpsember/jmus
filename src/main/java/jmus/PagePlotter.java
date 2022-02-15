@@ -112,6 +112,11 @@ public final class PagePlotter extends BaseObject {
       default:
         throw notSupported("unsupported section type:", section);
 
+      case TAB_CLEAR:
+        tabPositions.clear();
+        tabIndex = 0;
+        break;
+
       case TAB:
         if (tabIndex == tabPositions.size()) {
           tabPositions.add(cursor.x);
