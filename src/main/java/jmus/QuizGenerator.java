@@ -12,7 +12,7 @@ import java.util.Random;
 import jmus.gen.Chord;
 import jmus.gen.MusicKey;
 import jmus.gen.SongConfig;
-import jmus.gen.Stylenew;
+import jmus.gen.Style;
 import js.data.IntArray;
 import js.file.Files;
 import js.geometry.IPoint;
@@ -36,7 +36,7 @@ public class QuizGenerator {
     Graphics2D g = p.graphics();
     // rect(g, PAGE_CONTENT);
 
-    Stylenew style = style(0);
+    Style style = style(0);
     int xAdvance = style.meanChordWidthPixels() + style.chordPadX() + 8;
 
     int y = PAGE_CONTENT.y;
@@ -106,7 +106,7 @@ public class QuizGenerator {
     p.generateOutputFile(outFile);
   }
 
-  private void drawBarBetweenSets(Graphics2D g, Stylenew style, int y) {
+  private void drawBarBetweenSets(Graphics2D g, Style style, int y) {
     PAINT_SEP.apply(g);
     y -= style.spacingBetweenSections() * 0.7f;
     line(g, PAGE_CONTENT.x, y, PAGE_CONTENT.endX(), y);
@@ -126,7 +126,7 @@ public class QuizGenerator {
     return musicKeys;
   }
 
-  private void plotChords(PagePlotter p, List<Chord> chords, MusicKey key, Stylenew style, IPoint loc,
+  private void plotChords(PagePlotter p, List<Chord> chords, MusicKey key, Style style, IPoint loc,
       int xAdvance) {
     p.setKey(key);
     int x = loc.x;

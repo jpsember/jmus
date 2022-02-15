@@ -17,7 +17,7 @@ import jmus.gen.MusicKey;
 import jmus.gen.MusicSection;
 import jmus.gen.SectionType;
 import jmus.gen.Song;
-import jmus.gen.Stylenew;
+import jmus.gen.Style;
 import js.base.BaseObject;
 import js.file.Files;
 import js.geometry.IPoint;
@@ -66,7 +66,7 @@ public final class PagePlotter extends BaseObject {
   public void plotSong(Song song, int styleNumber) {
     //pr("plotting song:", INDENT, song);
 
-    Stylenew style = style(styleNumber);
+    Style style = style(styleNumber);
 
     Graphics2D g = graphics();
     PAINT_NORMAL.apply(g);
@@ -164,7 +164,8 @@ public final class PagePlotter extends BaseObject {
         IPoint barLoc = lineLoc;
 
         for (List<Chord> barList : barLists) {
-          int barWidth = (style.meanChordWidthPixels() + style.chordPadX()) * barList.size() + style.chordPadX();
+          int barWidth = (style.meanChordWidthPixels() + style.chordPadX()) * barList.size()
+              + style.chordPadX();
           style.paintBarFrame().apply(graphics());
           rect(graphics(), barLoc.x, barLoc.y, barWidth, barHeight);
 
@@ -194,11 +195,11 @@ public final class PagePlotter extends BaseObject {
     }
   }
 
-  private static int smallPadding(Stylenew style) {
+  private static int smallPadding(Style style) {
     return style.barPadX() / 3;
   }
 
-  public int plotChord(Chord chord, Stylenew style, IPoint loc) {
+  public int plotChord(Chord chord, Style style, IPoint loc) {
     Paint chordPaint = style.paintChord();
     int yAdjust = 0;
 
@@ -256,7 +257,7 @@ public final class PagePlotter extends BaseObject {
     return b;
   }
 
-  private IPoint renderString(SectionType type, String text, Stylenew style, int boxHeight, boolean center,
+  private IPoint renderString(SectionType type, String text, Style style, int boxHeight, boolean center,
       IPoint loc) {
     Graphics2D g = graphics();
     Paint pt;
@@ -295,7 +296,7 @@ public final class PagePlotter extends BaseObject {
     return new IPoint(width, f.getHeight());
   }
 
-  private static int renderTextEntries(Graphics2D g, Stylenew style, Collection<TextEntry> textEntries,
+  private static int renderTextEntries(Graphics2D g, Style style, Collection<TextEntry> textEntries,
       IPoint topLeft) {
 
     FontMetrics f = g.getFontMetrics();
@@ -315,7 +316,7 @@ public final class PagePlotter extends BaseObject {
         if (tx.text.startsWith("~")) {
           rowHeight = style.dashHeight();
         } else {
-          charPositionList = determineCharPositions(f, tx.text);
+          charPositionList = determineCharPositions(style, f, tx.text);
           int newWidth = determineStringWidth(charPositionList);
           tx.renderWidth = newWidth;
         }
@@ -327,7 +328,6 @@ public final class PagePlotter extends BaseObject {
 
     int py = topLeft.y;
     int x0 = topLeft.x;
-    int x1 = topLeft.x + maxWidth;
 
     int row = -1;
     for (TextEntry tx : textEntries) {
@@ -338,7 +338,7 @@ public final class PagePlotter extends BaseObject {
           throw notSupported("unknown text:", tx);
         case "dash": {
           int y0 = py + style.dashOffset();
-          line(g, x0, y0, x1, y0);
+          g.drawString("_", x0, y0);
         }
           break;
         }
@@ -351,7 +351,11 @@ public final class PagePlotter extends BaseObject {
         for (int i = 0; i < str.length(); i++) {
           char c = str.charAt(i);
           RenderedChar charPosition = charPositionList.get(i);
-          g.drawString(Character.toString(c), x0 + charPosition.x, ry);
+          int x = x0 + charPosition.x;
+          g.drawString(Character.toString(c), x, ry);
+          if (false) {
+            g.drawRect(x, ry - f.getAscent(), charPosition.width, f.getAscent());
+          }
         }
       }
     }
@@ -365,7 +369,8 @@ public final class PagePlotter extends BaseObject {
     return last.x + last.width;
   }
 
-  private static List<RenderedChar> determineCharPositions(FontMetrics metrics, String text) {
+  private static List<RenderedChar> determineCharPositions(Style style, FontMetrics metrics, String text) {
+    todo("We need some custom adjustment for sharps, flats");
     List<RenderedChar> result = arrayList();
 
     int x = 0;
@@ -376,13 +381,13 @@ public final class PagePlotter extends BaseObject {
       charInfo.ch = text.charAt(i);
 
       int cw = metrics.charWidth(charInfo.ch);
-
       charInfo.width = cw;
 
-      if (charInfo.ch > 0xff) {
-        x -= 2;
-        charInfo.width -= 2;
-      }
+      //      if (false && charInfo.ch > 0xff) {
+      //        x -= cw * 0.15f;
+      //        pr("adding unicode adjust:",style.unicodeAdjustX());
+      //        charInfo.width += -4; //style.unicodeAdjustX();
+      //      }
 
       charInfo.x = x;
       x += charInfo.width;

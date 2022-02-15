@@ -4,13 +4,13 @@
               "chord_height" : 30,
                "chord_pad_x" : 9,
                "dash_height" : 2,
-               "dash_offset" : 14,
+               "dash_offset" : 19,
    "mean_chord_width_pixels" : 26,
-           "paint_bar_frame" : { "color" : { "b" : 128,
+         "paint_bar_frame" : { "color" : { "b" : 128,
                                              "g" : 128,
                                              "r" : 128
                                            },
-                                  "font" : {  "name" : "Courier",
+                                  "font" : {  "name" : "Chalkboard",
                                               "size" : 18,
                                              "style" : 0
                                            },
@@ -20,7 +20,7 @@
                                              "g" : 0,
                                              "r" : 0
                                            },
-                                  "font" : {  "name" : "Courier",
+                                  "font" : {  "name" : "Chalkboard",
                                               "size" : 22,
                                              "style" : 0
                                            },
@@ -30,7 +30,7 @@
                                              "g" : 0,
                                              "r" : 0
                                            },
-                                  "font" : {  "name" : "Courier",
+                                  "font" : {  "name" : "Chalkboard",
                                               "size" : 14,
                                              "style" : 0
                                            },
@@ -85,9 +85,9 @@
               "chord_height" : 48,
                "chord_pad_x" : 12,
                "dash_height" : 3,
-               "dash_offset" : 10,
+               "dash_offset" : 16,
    "mean_chord_width_pixels" : 35,
-           "paint_bar_frame" : { "color" : { "b" : 128,
+         "paint_bar_frame" : { "color" : { "b" : 128,
                                              "g" : 128,
                                              "r" : 128
                                            },

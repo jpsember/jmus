@@ -14,7 +14,7 @@ import jmus.gen.MusicKey;
 import jmus.gen.MusicSection;
 import jmus.gen.SectionType;
 import jmus.gen.Song;
-import jmus.gen.Stylenew;
+import jmus.gen.Style;
 import js.file.Files;
 import js.geometry.IPoint;
 import js.geometry.IRect;
@@ -256,27 +256,25 @@ public final class MusUtil {
     return lineBuilder.toString();
   }
 
-  public static Stylenew style(int index) {
+  public static Style style(int index) {
     return getStyleList().get(index);
-//    return Style.styles().get(index);
   }
 
-  private static List<Stylenew> sStyleList;
-
-  private static List<Stylenew> getStyleList() {
+  private static List<Style> getStyleList() {
     if (sStyleList == null) {
       JSMap jsonMap = new JSMap(Files.readString(MusUtil.class, "styles.json"));
       JSList listOfMaps = jsonMap.getList("");
-      List<Stylenew> styleList = arrayList();
-      for (JSMap m2 : listOfMaps.asMaps()) {
-        pr("m2:",m2);
-        Stylenew snn = Files.parseAbstractData(Stylenew.DEFAULT_INSTANCE, m2);
-        styleList.add(snn);
+      List<Style> styleList = arrayList();
+      for (JSMap styleJson : listOfMaps.asMaps()) {
+        Style style = Files.parseAbstractData(Style.DEFAULT_INSTANCE, styleJson);
+        styleList.add(style);
       }
       sStyleList = styleList;
     }
     return sStyleList;
   }
+
+  private static List<Style> sStyleList;
 
   public static Chord.Builder chord(int number) {
     return Chord.newBuilder().number(number);
