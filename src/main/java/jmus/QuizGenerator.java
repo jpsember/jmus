@@ -12,6 +12,7 @@ import java.util.Random;
 import jmus.gen.Chord;
 import jmus.gen.MusicKey;
 import jmus.gen.SongConfig;
+import jmus.gen.Stylenew;
 import js.data.IntArray;
 import js.file.Files;
 import js.geometry.IPoint;
@@ -35,8 +36,8 @@ public class QuizGenerator {
     Graphics2D g = p.graphics();
     // rect(g, PAGE_CONTENT);
 
-    Style style = style(0);
-    int xAdvance = style.meanChordWidthPixels + style.chordPadX + 8;
+    Stylenew style = style(0);
+    int xAdvance = style.meanChordWidthPixels() + style.chordPadX() + 8;
 
     int y = PAGE_CONTENT.y;
 
@@ -46,7 +47,7 @@ public class QuizGenerator {
     while (true) {
 
       int indent = PIXELS_PER_INCH * 1;
-      int ysep = style.chordHeight + style.spacingBetweenSections;
+      int ysep = style.chordHeight() + style.spacingBetweenSections();
 
       int chordsPerRow = 16;
       List<Chord> chords = randomChords(chordsPerRow);
@@ -61,14 +62,14 @@ public class QuizGenerator {
 
       List<MusicKey> keys = buildMusicKeyList();
 
-      int x0 = x - (int) (style.barPadX * 1.6);
+      int x0 = x - (int) (style.barPadX() * 1.6);
       int x1 = x + xAdvance * chords.size();
 
       int rowNum = -1;
       for (MusicKey key : keys) {
         rowNum++;
         {
-          int y0 = y - style.chordPadX;
+          int y0 = y - style.chordPadX();
           int y1 = y0 + ysep;
           Paint bgndPaint = ((rowNum & 1) == 0) ? PAINT_ROW_BGND0 : PAINT_ROW_BGND1;
           bgndPaint.apply(g);
@@ -79,7 +80,7 @@ public class QuizGenerator {
         {
           PAINT_SCALE.apply(g);
           FontMetrics f = g.getFontMetrics();
-          int tx = x - f.stringWidth(n) - style.chordPadX * 2;
+          int tx = x - f.stringWidth(n) - style.chordPadX() * 2;
           g.drawString(n, tx, y + f.getAscent());
         }
 
@@ -105,9 +106,9 @@ public class QuizGenerator {
     p.generateOutputFile(outFile);
   }
 
-  private void drawBarBetweenSets(Graphics2D g, Style style, int y) {
+  private void drawBarBetweenSets(Graphics2D g, Stylenew style, int y) {
     PAINT_SEP.apply(g);
-    y -= style.spacingBetweenSections * 0.7f;
+    y -= style.spacingBetweenSections() * 0.7f;
     line(g, PAGE_CONTENT.x, y, PAGE_CONTENT.endX(), y);
   }
 
@@ -125,7 +126,7 @@ public class QuizGenerator {
     return musicKeys;
   }
 
-  private void plotChords(PagePlotter p, List<Chord> chords, MusicKey key, Style style, IPoint loc,
+  private void plotChords(PagePlotter p, List<Chord> chords, MusicKey key, Stylenew style, IPoint loc,
       int xAdvance) {
     p.setKey(key);
     int x = loc.x;

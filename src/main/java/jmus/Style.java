@@ -8,6 +8,7 @@ import java.util.List;
 import jmus.gen.Stylenew;
 import js.graphics.Paint;
 
+@Deprecated
 public final class Style {
   final Paint paintChord;
   final Paint paintChordSmall;
