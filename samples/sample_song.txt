@@ -1,4 +1,9 @@
 
+  1    tab   2 3
+"h:"   tab   4 5
+
+
+/*
 title "Your Song"
 
 subtitle "Elton John"
@@ -7,13 +12,13 @@ smalltext "Original Key: E♭"
 //key:"e-flat"
 
 "Intro"
-1 4/1 5/1 4/1
+5 1 4/1 5/1 4/1
 
 "Verse"
-1 47 5/7 3-
-6- 6-/5 6-/#4 47
-1/5 5 27 6-
-1 2-7 4 "1:" 5 5  "2:" 1 1
+3 tab 1 47 5/7 3-
+tab 6- 6-/5 6-/#4 47
+tab 1/5 5 27 6-
+tab 1 2-7 4 "1:" 5 5  "2:" 1 1
 
 "Chorus"
 5/7 6- 2- 4
@@ -28,3 +33,4 @@ smalltext "Original Key: E♭"
 1 4/1 5/1 4/1
 
 smalltext "Intro / Verse1 / Verse2 / Chorus1 / Intro / Verse1 / Verse2 / Chorus2 / Outro"
+*/

@@ -12,4 +12,5 @@ enum {
 
   line_break,
   paragraph_break,
+  tab,
 }

@@ -63,7 +63,8 @@ public final class PagePlotter extends BaseObject {
   }
 
   public void plotSong(Song song, int styleNumber) {
-   todo("seems to be bigger paragraph breaks after chords?");
+    //pr("plotting song:", INDENT, song);
+
     Style style = style(styleNumber);
 
     Graphics2D g = graphics();
@@ -79,6 +80,8 @@ public final class PagePlotter extends BaseObject {
     boolean rowContainsChords = false;
     int visibleSectionsInRow = 0;
     SectionType lastSectionPlottedInRow = null;
+    int tabIndex = 0;
+    List<Integer> tabPositions = arrayList();
 
     int secNum = -1;
     for (MusicSection section : song.sections()) {
@@ -88,6 +91,7 @@ public final class PagePlotter extends BaseObject {
         lastSectionPlottedInRow = null;
         rowContainsChords = false;
         visibleSectionsInRow = 0;
+        tabIndex = 0;
         for (int j = secNum; j < song.sections().size(); j++) {
           MusicSection s = song.sections().get(j);
           if (s.type() == SectionType.LINE_BREAK || s.type() == SectionType.PARAGRAPH_BREAK)
@@ -108,6 +112,19 @@ public final class PagePlotter extends BaseObject {
       default:
         throw notSupported("unsupported section type:", section);
 
+      case TAB:
+        if (tabIndex == tabPositions.size()) {
+          tabPositions.add(cursor.x);
+        } else {
+          int tabX = tabPositions.get(tabIndex);
+          if (tabX > cursor.x) {
+            cursor = cursor.withX(tabX);
+          }
+          lastSectionPlottedInRow = null;
+        }
+        tabIndex++;
+        break;
+
       case BEATS:
         beatsPerBar = section.intArg();
         break;
@@ -120,7 +137,7 @@ public final class PagePlotter extends BaseObject {
 
       case PARAGRAPH_BREAK:
         startOfRow = true;
-        cursor = new IPoint(PAGE_CONTENT.x, cursor.y + rowHeight * 2);
+        cursor = new IPoint(PAGE_CONTENT.x, cursor.y + rowHeight + style.barPadY);
         rowHeight = 0;
         break;
 
@@ -150,6 +167,7 @@ public final class PagePlotter extends BaseObject {
 
       case CHORD_SEQUENCE: {
         int xPadding = 0;
+        todo("the 'last section plotted in row' is screwing up tab alignment");
         if (lastSectionPlottedInRow != null) {
           xPadding += smallPadding(style);
         }
@@ -186,6 +204,7 @@ public final class PagePlotter extends BaseObject {
       if (size != null) {
         rowHeight = Math.max(rowHeight, size.y);
         cursor = cursor.sumWith(size.x, 0);
+        pr("proc size:", size, "cursor now:", cursor);
       }
 
     }

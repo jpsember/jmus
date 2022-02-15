@@ -165,9 +165,10 @@ public final class MusUtil {
 
   private static DFA mDFA;
 
-  public static final int T_WS = 0, T_CR = 1, T_STRING = 2, T_CHORD = 3, T_FWD_SLASH = 4, T_PAROP = 5,
-      T_PARCL = 6, T_PERIOD = 7, T_TITLE = 8, T_SUBTITLE = 9, T_TEXT = 10, T_SMALLTEXT = 11, T_BEATS = 12,
-      T_KEY = 13, T_BWD_SLASH = 14;
+  private static int _k = 0;
+  public static final int T_WS = _k++, T_CR = _k++, T_STRING = _k++, T_CHORD = _k++, T_FWD_SLASH = _k++,
+      T_PAROP = _k++, T_PARCL = _k++, T_PERIOD = _k++, T_TITLE = _k++, T_SUBTITLE = _k++, T_TEXT = _k++,
+      T_SMALLTEXT = _k++, T_BEATS = _k++, T_KEY = _k++, T_BWD_SLASH = _k++, T_TAB = _k++;
 
   // ------------------------------------------------------------------
   // Rendering
