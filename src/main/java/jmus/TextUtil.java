@@ -87,7 +87,7 @@ public final class TextUtil {
     return bounds;
   }
 
-  public static void experiment() {
+  public static void experiment2() {
     Font font = style(0).paintChord().font();
     BufferedImage canvas = constructCanvasImage();
     Graphics2D g = canvas.createGraphics();
@@ -104,5 +104,11 @@ public final class TextUtil {
       ImgUtil.writeImage(Files.S, canvas, Files.getDesktopFile("char_" + str.substring(i, i + 1) + ".png"));
     }
     pr(m);
+  }
+
+  public static void experiment() {
+    Font font = style(0).paintChord().font();
+    CharAdjustmentMap cm = CharAdjustmentMap.forFont(font);
+    pr(cm.toJson());
   }
 }
