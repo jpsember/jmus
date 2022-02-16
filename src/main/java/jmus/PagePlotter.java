@@ -80,14 +80,12 @@ public final class PagePlotter extends BaseObject {
     // True if the current row contains some chords
     boolean rowContainsChords = false;
     int visibleSectionsInRow = 0;
-    SectionType lastSectionPlottedInRow = null;
 
     int secNum = -1;
     for (MusicSection section : song.sections()) {
       secNum++;
 
       if (startOfRow) {
-        lastSectionPlottedInRow = null;
         rowContainsChords = false;
         visibleSectionsInRow = 0;
         for (int j = secNum; j < song.sections().size(); j++) {
@@ -137,30 +135,25 @@ public final class PagePlotter extends BaseObject {
         int px = cursor.x;
         int py = cursor.y;
         int boxHeight = 0;
-        if (lastSectionPlottedInRow != null)
-          px += smallPadding(style);
+        int xPadding = smallPadding(style);
+        px += xPadding;
         if (rowContainsChords)
           boxHeight = style.chordHeight();
         IPoint stringSize = renderString(section.type(), section.textArg(), style, boxHeight,
             visibleSectionsInRow == 1
                 && (section.type() == SectionType.TITLE || section.type() == SectionType.SUBTITLE),
             new IPoint(px, py));
+        px += xPadding;
         size = new IPoint(px - cursor.x + stringSize.x, stringSize.y);
-        lastSectionPlottedInRow = section.type();
       }
         break;
 
       case CHORD_SEQUENCE: {
-        int xPadding = 0;
-        todo("the 'last section plotted in row' is screwing up tab alignment");
-        if (lastSectionPlottedInRow != null) {
-          xPadding += smallPadding(style);
-        }
         List<List<Chord>> barLists = arrayList();
         extractChordsForBars(section.chords(), beatsPerBar, barLists);
         int barHeight = style.chordHeight() + 1 * style.barPadY();
 
-        IPoint lineLoc = cursor.sumWith(xPadding, 0);
+        IPoint lineLoc = cursor;
         IPoint barLoc = lineLoc;
 
         for (List<Chord> barList : barLists) {
@@ -182,7 +175,6 @@ public final class PagePlotter extends BaseObject {
 
         size = new IPoint(barLoc.x - cursor.x, barHeight);
         lineLoc = lineLoc.withX(lineLoc.x + size.x);
-        lastSectionPlottedInRow = section.type();
       }
         break;
       }
