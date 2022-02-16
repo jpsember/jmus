@@ -115,6 +115,10 @@ public final class CharAdjustmentMap {
     return toJson().toString();
   }
 
+  public IRect getRect(char c) {
+    return mCharInfoMap.get(c);
+  }
+
   private void parse(JSMap m) {
     JSMap entries = m.getMap("entries");
     for (String k : entries.keySet()) {

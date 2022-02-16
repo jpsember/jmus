@@ -64,6 +64,7 @@ public final class MusUtil {
       }
 
       sb.append(key.keys().get(keyIndex));
+      //sb.append( "M♯");
 
     } else {
 

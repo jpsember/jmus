@@ -8,7 +8,6 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 
 import jmus.gen.Chord;
@@ -21,6 +20,7 @@ import jmus.gen.Style;
 import js.base.BaseObject;
 import js.file.Files;
 import js.geometry.IPoint;
+import js.geometry.IRect;
 import js.geometry.Matrix;
 import js.graphics.ImgUtil;
 import js.graphics.Paint;
@@ -187,8 +187,11 @@ public final class PagePlotter extends BaseObject {
 
     if (chord.slashChord() != null) {
       chordPaint = style.paintChordSmall();
+      todo("this yAdjustment should perhaps be in the style? What is it for?");
       yAdjust = -4;
     }
+
+    mCharAdjustmentMap = CharAdjustmentMap.forFont(chordPaint.font());
 
     chordPaint.apply(graphics());
     if (chord.type() == ChordType.BEAT)
@@ -202,7 +205,7 @@ public final class PagePlotter extends BaseObject {
       tx().text = renderChord(chord.slashChord(), mKey, null, null).toString();
     }
 
-    int width = renderTextEntries(graphics(), style, mTextEntries, loc.sumWith(0, yAdjust));
+    int width = renderTextEntries(style, loc.sumWith(0, yAdjust));
     mTextEntries.clear();
     return width + style.chordPadX();
   }
@@ -278,17 +281,16 @@ public final class PagePlotter extends BaseObject {
     return new IPoint(width, f.getHeight());
   }
 
-  private static int renderTextEntries(Graphics2D g, Style style, Collection<TextEntry> textEntries,
-      IPoint topLeft) {
+  private int renderTextEntries(Style style, IPoint topLeft) {
 
-    FontMetrics f = g.getFontMetrics();
+    FontMetrics f = mGraphics.getFontMetrics();
 
     List<List<RenderedChar>> charPositionLists = arrayList();
 
     int maxWidth = 0;
     {
       int y = 0;
-      for (TextEntry tx : textEntries) {
+      for (TextEntry tx : mTextEntries) {
 
         List<RenderedChar> charPositionList = null;
 
@@ -312,7 +314,7 @@ public final class PagePlotter extends BaseObject {
     int x0 = topLeft.x;
 
     int row = -1;
-    for (TextEntry tx : textEntries) {
+    for (TextEntry tx : mTextEntries) {
       row++;
       if (tx.text.startsWith("~")) {
         switch (tx.text.substring(1)) {
@@ -320,7 +322,7 @@ public final class PagePlotter extends BaseObject {
           throw notSupported("unknown text:", tx);
         case "dash": {
           int y0 = py + style.dashOffset();
-          g.drawString("_", x0, y0);
+          mGraphics.drawString("_", x0, y0);
         }
           break;
         }
@@ -334,9 +336,9 @@ public final class PagePlotter extends BaseObject {
           char c = str.charAt(i);
           RenderedChar charPosition = charPositionList.get(i);
           int x = x0 + charPosition.x;
-          g.drawString(Character.toString(c), x, ry);
+          mGraphics.drawString(Character.toString(c), x, ry);
           if (false) {
-            g.drawRect(x, ry - f.getAscent(), charPosition.width, f.getAscent());
+            mGraphics.drawRect(x, ry - f.getAscent(), charPosition.width, f.getAscent());
           }
         }
       }
@@ -351,27 +353,29 @@ public final class PagePlotter extends BaseObject {
     return last.x + last.width;
   }
 
-  private static List<RenderedChar> determineCharPositions(Style style, FontMetrics metrics, String text) {
-    todo("We need some custom adjustment for sharps, flats");
+  private List<RenderedChar> determineCharPositions(Style style, FontMetrics metrics, String text) {
     List<RenderedChar> result = arrayList();
 
     int x = 0;
 
     for (int i = 0; i < text.length(); i++) {
+      char c = text.charAt(i);
 
       RenderedChar charInfo = new RenderedChar();
-      charInfo.ch = text.charAt(i);
+      int cw = metrics.charWidth(c);
 
-      int cw = metrics.charWidth(charInfo.ch);
-      charInfo.width = cw;
+      IRect rect = mCharAdjustmentMap.getRect(c);
 
-      //      if (false && charInfo.ch > 0xff) {
-      //        x -= cw * 0.15f;
-      //        pr("adding unicode adjust:",style.unicodeAdjustX());
-      //        charInfo.width += -4; //style.unicodeAdjustX();
-      //      }
-
+      if (rect != null) {
+        // We need to plot the character n pixels further to the left,
+        // and advance the cursor so the next character is drawn past the bounding rectangle
+        //
+        int xShift = -rect.x + 1; // + 1 for a bit of padding...
+        x += xShift;
+        charInfo.width = rect.width - xShift;
+      }
       charInfo.x = x;
+      charInfo.width = cw;
       x += charInfo.width;
       result.add(charInfo);
     }
@@ -383,7 +387,6 @@ public final class PagePlotter extends BaseObject {
   }
 
   private static class RenderedChar {
-    char ch;
     int x;
     int width;
   }
@@ -419,5 +422,5 @@ public final class PagePlotter extends BaseObject {
   // True if the current row contains some chords
   private boolean mRowContainsChords;
   private int mVisibleSectionsInRow;
-
+  private CharAdjustmentMap mCharAdjustmentMap;
 }
