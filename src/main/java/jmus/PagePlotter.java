@@ -63,45 +63,26 @@ public final class PagePlotter extends BaseObject {
     ImgUtil.writeImage(Files.S, mImage, outputFile);
   }
 
-  public void plotSong(Song song, int styleNumber) {
+  public void plotSong(Song song, Style style) {
     //pr("plotting song:", INDENT, song);
-
-    Style style = style(styleNumber);
-
-    Graphics2D g = graphics();
-    PAINT_NORMAL.apply(g);
+    mSong = song;
+    PAINT_NORMAL.apply(graphics());
 
     IPoint cursor = PAGE_CONTENT.location();
 
-    int rowHeight = 0;
-    int beatsPerBar = 0;
-    // True if we're about to process song sections on a new row
-    boolean startOfRow = true;
-    // True if the current row contains some chords
-    boolean rowContainsChords = false;
-    int visibleSectionsInRow = 0;
+    preparePlot();
 
-    int secNum = -1;
-    for (MusicSection section : song.sections()) {
-      secNum++;
+    for (int sectionNumber = 0; sectionNumber < song.sections().size(); sectionNumber++) {
 
-      if (startOfRow) {
-        rowContainsChords = false;
-        visibleSectionsInRow = 0;
-        for (int j = secNum; j < song.sections().size(); j++) {
-          MusicSection s = song.sections().get(j);
-          if (s.type() == SectionType.LINE_BREAK || s.type() == SectionType.PARAGRAPH_BREAK)
-            break;
-          if (visibleSection(s.type()))
-            visibleSectionsInRow++;
-          if (s.type() == SectionType.CHORD_SEQUENCE)
-            rowContainsChords = true;
-        }
-        startOfRow = false;
+      if (mStartOfRow) {
+        preparePlotRow(sectionNumber);
+        mStartOfRow = false;
       }
 
-      // Size of section being processed, in pixels
-      IPoint size = null;
+      MusicSection section = song.sections().get(sectionNumber);
+
+      // size in pixels of section
+      IPoint sectionSize = null;
 
       switch (section.type()) {
 
@@ -109,19 +90,19 @@ public final class PagePlotter extends BaseObject {
         throw notSupported("unsupported section type:", section);
 
       case BEATS:
-        beatsPerBar = section.intArg();
+        mBeatsPerBar = section.intArg();
         break;
 
       case LINE_BREAK:
-        startOfRow = true;
-        cursor = new IPoint(PAGE_CONTENT.x, cursor.y + rowHeight);
-        rowHeight = 0;
+        mStartOfRow = true;
+        cursor = new IPoint(PAGE_CONTENT.x, cursor.y + mRowHeight);
+        mRowHeight = 0;
         break;
 
       case PARAGRAPH_BREAK:
-        startOfRow = true;
-        cursor = new IPoint(PAGE_CONTENT.x, cursor.y + rowHeight + style.barPadY());
-        rowHeight = 0;
+        mStartOfRow = true;
+        cursor = new IPoint(PAGE_CONTENT.x, cursor.y + mRowHeight + style.barPadY());
+        mRowHeight = 0;
         break;
 
       case KEY:
@@ -137,20 +118,20 @@ public final class PagePlotter extends BaseObject {
         int boxHeight = 0;
         int xPadding = smallPadding(style);
         px += xPadding;
-        if (rowContainsChords)
+        if (mRowContainsChords)
           boxHeight = style.chordHeight();
         IPoint stringSize = renderString(section.type(), section.textArg(), style, boxHeight,
-            visibleSectionsInRow == 1
+            mVisibleSectionsInRow == 1
                 && (section.type() == SectionType.TITLE || section.type() == SectionType.SUBTITLE),
             new IPoint(px, py));
         px += xPadding;
-        size = new IPoint(px - cursor.x + stringSize.x, stringSize.y);
+        sectionSize = new IPoint(px - cursor.x + stringSize.x, stringSize.y);
       }
         break;
 
       case CHORD_SEQUENCE: {
         List<List<Chord>> barLists = arrayList();
-        extractChordsForBars(section.chords(), beatsPerBar, barLists);
+        extractChordsForBars(section.chords(), mBeatsPerBar, barLists);
         int barHeight = style.chordHeight() + 1 * style.barPadY();
 
         IPoint lineLoc = cursor;
@@ -173,22 +154,31 @@ public final class PagePlotter extends BaseObject {
           barLoc = barLoc.sumWith(barWidth, 0);
         }
 
-        size = new IPoint(barLoc.x - cursor.x, barHeight);
-        lineLoc = lineLoc.withX(lineLoc.x + size.x);
+        sectionSize = new IPoint(barLoc.x - cursor.x, barHeight);
+        lineLoc = lineLoc.withX(lineLoc.x + sectionSize.x);
       }
         break;
       }
 
-      if (size != null) {
-        rowHeight = Math.max(rowHeight, size.y);
-        cursor = cursor.sumWith(size.x, 0);
+      if (sectionSize != null) {
+        mRowHeight = Math.max(mRowHeight, sectionSize.y);
+        cursor = cursor.sumWith(sectionSize.x, 0);
       }
-
     }
   }
 
-  private static int smallPadding(Style style) {
-    return style.barPadX() / 3;
+  private void preparePlotRow(int sectionNumber) {
+    mRowContainsChords = false;
+    mVisibleSectionsInRow = 0;
+    for (int j = sectionNumber; j < mSong.sections().size(); j++) {
+      MusicSection s = mSong.sections().get(j);
+      if (s.type() == SectionType.LINE_BREAK || s.type() == SectionType.PARAGRAPH_BREAK)
+        break;
+      if (visibleSection(s.type()))
+        mVisibleSectionsInRow++;
+      if (s.type() == SectionType.CHORD_SEQUENCE)
+        mRowContainsChords = true;
+    }
   }
 
   public int plotChord(Chord chord, Style style, IPoint loc) {
@@ -388,6 +378,10 @@ public final class PagePlotter extends BaseObject {
     return result;
   }
 
+  private static int smallPadding(Style style) {
+    return style.barPadX() / 3;
+  }
+
   private static class RenderedChar {
     char ch;
     int x;
@@ -400,9 +394,30 @@ public final class PagePlotter extends BaseObject {
     int yOffset;
   }
 
+  private void preparePlot() {
+    mRowHeight = 0;
+    mBeatsPerBar = 0;
+    mStartOfRow = true;
+    mRowContainsChords = false;
+    mVisibleSectionsInRow = 0;
+  }
+
   private MusicKey mKey;
   private BufferedImage mImage;
   private Graphics2D mGraphics;
   private List<TextEntry> mTextEntries = arrayList();
+
+  // ------------------------------------------------------------------
+  // plotSong() usage
+  // ------------------------------------------------------------------
+
+  private Song mSong;
+  private int mRowHeight;
+  private int mBeatsPerBar;
+  // True if we're about to process song sections on a new row
+  private boolean mStartOfRow;
+  // True if the current row contains some chords
+  private boolean mRowContainsChords;
+  private int mVisibleSectionsInRow;
 
 }

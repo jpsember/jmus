@@ -58,7 +58,7 @@ public class SongOper extends AppOper {
     mConfig = config();
 
     if (DEV) {
-       generateQuiz();
+      generateQuiz();
       mConfig = mConfig.toBuilder().input(new File("samples/wish.txt")).build();
       generateSong();
       return;
@@ -83,14 +83,14 @@ public class SongOper extends AppOper {
     Song song = new SongParser(mSourceFile).parse();
 
     //pr("parsed:",INDENT,song);
-    
+
     MusicKey key = null;
     if (nonEmpty(mConfig.scale()))
       key = musicKey(mConfig.scale());
 
     PagePlotter p = new PagePlotter();
     p.setKey(key);
-    p.plotSong(song, mConfig.style());
+    p.plotSong(song, style(mConfig.style()));
 
     File outFile = mConfig.output();
     if (Files.empty(outFile))
