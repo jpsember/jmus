@@ -58,6 +58,11 @@ public class SongOper extends AppOper {
     mConfig = config();
 
     if (DEV) {
+      if (true) {
+        TextUtil.experiment();
+        return;
+      }
+
       generateQuiz();
       mConfig = mConfig.toBuilder().input(new File("samples/wish.txt")).build();
       generateSong();
