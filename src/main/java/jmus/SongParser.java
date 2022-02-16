@@ -115,8 +115,10 @@ public class SongParser extends BaseObject {
           break;
       }
       if (found) {
-        if (!joinFlag)
-          mPendingBreakType = Math.min(crCount, 2);
+        if (!joinFlag) {
+          int newBreakType = Math.min(crCount, 2);
+          mPendingBreakType = Math.max(mPendingBreakType, newBreakType);
+        }
       }
     }
     return found;

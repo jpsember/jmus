@@ -25,7 +25,7 @@ import js.parsing.DFA;
 
 public final class MusUtil {
 
-  public static final boolean DEV = alert("DEV mode is true");
+  public static final boolean DEV = false && alert("DEV mode is true");
   public static final boolean EXTRA_CHARS = false && alert("EXTRA_CHARS in effect");
 
   // 

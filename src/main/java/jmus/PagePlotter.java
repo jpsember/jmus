@@ -200,13 +200,18 @@ public final class PagePlotter extends BaseObject {
 
     mTextEntries.clear();
 
-    tx().text = renderChord(chord, mKey, null, null).toString();
+    // For (non-slash) chords that are especially wide, shift the chord to the left
+    int xAdjust = 0;
+    String mainText = renderChord(chord, mKey, null, null).toString();
+    tx().text = mainText;
     if (chord.slashChord() != null) {
       tx().text = "~dash";
       tx().text = renderChord(chord.slashChord(), mKey, null, null).toString();
+    } else {
+      if (mainText.length() > 2)
+        xAdjust = (int) (-style.meanChordWidthPixels() * .18f);
     }
-
-    renderTextEntries(style, loc.sumWith(0, yAdjust));
+    renderTextEntries(style, loc.sumWith(xAdjust, yAdjust));
     mTextEntries.clear();
   }
 

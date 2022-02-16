@@ -1,14 +1,14 @@
-{ "" : [ {                "bar_pad_x" : 10,
+{ "" : [ {                "bar_pad_x" : 12,
                           "bar_pad_y" : 7,
-                       "chord_height" : 30,
+                       "chord_height" : 32,
                         "chord_pad_x" : 9,
                         "dash_height" : 2,
                         "dash_offset" : 19,
-            "mean_chord_width_pixels" : 26,
-            "slash_chord_adjust_y" : -4,
-                    "paint_bar_frame" : { "color" : { "b" : 128,
-                                                      "g" : 128,
-                                                      "r" : 128
+            "mean_chord_width_pixels" : 34,
+            "slash_chord_adjust_y" : -6,
+                    "paint_bar_frame" : { "color" : { "b" : 192,
+                                                      "g" : 192,
+                                                      "r" : 192
                                                     },
                                            "font" : {  "name" : "Chalkboard",
                                                        "size" : 18,
@@ -88,12 +88,12 @@
                         "chord_pad_x" : 10,
                         "dash_height" : -8,
                         "dash_offset" : 23,
-            "mean_chord_width_pixels" : 32,
+            "mean_chord_width_pixels" : 44,
               "slash_chord_adjust_y" : -6,
 
-                  "paint_bar_frame" : { "color" : { "b" : 128,
-                                                      "g" : 128,
-                                                      "r" : 128
+                  "paint_bar_frame" : { "color" : { "b" : 192,
+                                                      "g" : 192,
+                                                      "r" : 192
                                                     },
                                           "width" : 2.0
                                         },

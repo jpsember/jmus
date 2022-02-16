@@ -63,10 +63,9 @@ public class SongOper extends AppOper {
         return;
       }
 
-      generateQuiz();
-      //if (true) return;
-      mConfig = mConfig.toBuilder().input(new File("samples/wish.txt")) //
-      //    .style(1) //
+      //generateQuiz();
+      mConfig = mConfig.toBuilder().input(new File("samples/circle_of_fifths.txt")) //
+               .style(1) //
           .build();
       generateSong();
       return;

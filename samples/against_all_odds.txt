@@ -3,22 +3,27 @@ title "Against All Odds"
 subtitle "Phil Collins"
 smalltext "Original Key: D flat"
 
-beats:4
+//beats:4
 
-text "Intro"
-
+"Intro"
  2- 5 2- 5
 
 
-text "Verse 1 + Verse 2"
+"Verse 1 + Verse 2"
 6- 7- 1 2-
 4 5/4 3- 6-
-2- 2- 5 5 smalltext "2nd time 7th"
+2- 2- 5 "1:" 5 "2:" 57
 
-text "Chorus"
+"Chorus"
+1 1 2 2
+6- 4 2- (5 57)
+1 1 2 2
+6- 4 2- (5 57)
+"3rd time only:"
 1 1 2 2
 6- 4 2- (5 57)
 
-text "Verse 3"
-text "Chorus"
-text "Outro"
+"Outro"
+ 2- 5 2- 5  "?? not finished"
+
+smalltext "Intro / Verse1 / Verse2 / Chorus / Verse3 / Outro"
