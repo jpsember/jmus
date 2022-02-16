@@ -298,14 +298,16 @@ public final class PagePlotter extends BaseObject {
         int rowHeight = f.getHeight();
         tx.yOffset = y;
 
+        int renderWidth;
         if (tx.text.startsWith("~")) {
           rowHeight = style.dashHeight();
+          renderWidth = style.meanChordWidthPixels();
         } else {
           charPositionList = determineCharPositions(style, f, tx.text);
           int newWidth = determineStringWidth(charPositionList);
-          tx.renderWidth = newWidth;
+          renderWidth = newWidth;
         }
-        maxWidth = Math.max(maxWidth, tx.renderWidth);
+        maxWidth = Math.max(maxWidth, renderWidth);
         y += rowHeight;
         charPositionLists.add(charPositionList);
       }
@@ -385,7 +387,6 @@ public final class PagePlotter extends BaseObject {
 
   private static class TextEntry {
     String text;
-    int renderWidth;
     int yOffset;
   }
 
