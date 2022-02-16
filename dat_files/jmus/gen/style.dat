@@ -16,4 +16,5 @@ fields {
   Paint paint_text;
   Paint paint_small_text;
   int dash_offset;
+  int slash_chord_adjust_y;
 }

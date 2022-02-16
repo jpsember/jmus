@@ -102,7 +102,7 @@ public final class PagePlotter extends BaseObject {
 
       case PARAGRAPH_BREAK:
         mStartOfRow = true;
-        cursor = new IPoint(PAGE_CONTENT.x, cursor.y + mRowHeight + style.barPadY());
+        cursor = new IPoint(PAGE_CONTENT.x, cursor.y + mRowHeight + 2 * style.barPadY());
         mRowHeight = 0;
         break;
 
@@ -189,8 +189,7 @@ public final class PagePlotter extends BaseObject {
 
     if (chord.slashChord() != null) {
       chordPaint = style.paintChordSmall();
-      todo("this yAdjustment should perhaps be in the style? What is it for?");
-      yAdjust = -4;
+      yAdjust = style.slashChordAdjustY();
     }
 
     mCharAdjustmentMap = CharAdjustmentMap.forFont(chordPaint.font());
