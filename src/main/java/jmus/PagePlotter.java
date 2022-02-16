@@ -149,7 +149,8 @@ public final class PagePlotter extends BaseObject {
 
           for (Chord chord : barList) {
             IPoint loc = new IPoint(cx, cy);
-            cx += plotChord(chord, style, loc);
+            plotChord(chord, style, loc);
+            cx += style.meanChordWidthPixels() + style.chordPadX();
           }
 
           barLoc = barLoc.sumWith(barWidth, 0);
@@ -182,7 +183,7 @@ public final class PagePlotter extends BaseObject {
     }
   }
 
-  public int plotChord(Chord chord, Style style, IPoint loc) {
+  public void plotChord(Chord chord, Style style, IPoint loc) {
     Paint chordPaint = style.paintChord();
     int yAdjust = 0;
 
@@ -206,9 +207,8 @@ public final class PagePlotter extends BaseObject {
       tx().text = renderChord(chord.slashChord(), mKey, null, null).toString();
     }
 
-    int width = renderTextEntries(style, loc.sumWith(0, yAdjust));
+    renderTextEntries(style, loc.sumWith(0, yAdjust));
     mTextEntries.clear();
-    return width + style.chordPadX();
   }
 
   private void extractChordsForBars(List<Chord> chordList, int beatsPerBar, List<List<Chord>> barList) {
@@ -282,13 +282,12 @@ public final class PagePlotter extends BaseObject {
     return new IPoint(width, f.getHeight());
   }
 
-  private int renderTextEntries(Style style, IPoint topLeft) {
+  private void renderTextEntries(Style style, IPoint topLeft) {
 
     FontMetrics f = mGraphics.getFontMetrics();
 
     List<int[]> charPositionLists = arrayList();
 
-    int maxWidth = 0;
     {
       int y = 0;
       for (TextEntry tx : mTextEntries) {
@@ -298,16 +297,11 @@ public final class PagePlotter extends BaseObject {
         int rowHeight = f.getHeight();
         tx.yOffset = y;
 
-        int renderWidth;
         if (tx.text.startsWith("~")) {
           rowHeight = style.dashHeight();
-          renderWidth = style.meanChordWidthPixels();
         } else {
           charPositionList = determineCharPositions(style, f, tx.text);
-          int newWidth = determineStringWidth(charPositionList);
-          renderWidth = newWidth;
         }
-        maxWidth = Math.max(maxWidth, renderWidth);
         y += rowHeight;
         charPositionLists.add(charPositionList);
       }
@@ -343,13 +337,6 @@ public final class PagePlotter extends BaseObject {
         }
       }
     }
-    return maxWidth;
-  }
-
-  private static int determineStringWidth(int[] rcl) {
-    if (rcl.length == 0)
-      return 0;
-    return rcl[rcl.length - 1];
   }
 
   private int[] determineCharPositions(Style style, FontMetrics metrics, String text) {
