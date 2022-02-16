@@ -20,7 +20,7 @@ public final class CharAdjustmentMap {
 
   // The list of characters that we will construct adjustments for
   //
-  private static String sAlphabet = "ABCDEFG♭♯⁻⁺ᵒ²⁴⁵⁶⁷⁹";
+  private static String sAlphabet = "♭♯⁻⁺ᵒ²⁴⁵⁶⁷⁹";
 
   public static CharAdjustmentMap forFont(Font font) {
     String key = fontKey(font);

@@ -26,6 +26,7 @@ import js.parsing.DFA;
 public final class MusUtil {
 
   public static final boolean DEV = alert("DEV mode is true");
+  public static final boolean EXTRA_CHARS = false && alert("EXTRA_CHARS in effect");
 
   // 
   // Useful reference for unicode:  https://en.wikipedia.org/wiki/Unicode_subscripts_and_superscripts
@@ -64,7 +65,8 @@ public final class MusUtil {
       }
 
       sb.append(key.keys().get(keyIndex));
-      //sb.append( "M♯");
+      if (EXTRA_CHARS)
+        sb.append("♯");
 
     } else {
 

@@ -18,6 +18,7 @@ import jmus.gen.SectionType;
 import jmus.gen.Song;
 import jmus.gen.Style;
 import js.base.BaseObject;
+import js.data.IntArray;
 import js.file.Files;
 import js.geometry.IPoint;
 import js.geometry.IRect;
@@ -285,14 +286,14 @@ public final class PagePlotter extends BaseObject {
 
     FontMetrics f = mGraphics.getFontMetrics();
 
-    List<List<RenderedChar>> charPositionLists = arrayList();
+    List<int[]> charPositionLists = arrayList();
 
     int maxWidth = 0;
     {
       int y = 0;
       for (TextEntry tx : mTextEntries) {
 
-        List<RenderedChar> charPositionList = null;
+        int[] charPositionList = null;
 
         int rowHeight = f.getHeight();
         tx.yOffset = y;
@@ -327,41 +328,35 @@ public final class PagePlotter extends BaseObject {
           break;
         }
       } else {
-        List<RenderedChar> charPositionList = charPositionLists.get(row);
+        int[] charPositionList = charPositionLists.get(row);
         int y = py + tx.yOffset;
         String str = tx.text;
 
         int ry = y + f.getAscent();
         for (int i = 0; i < str.length(); i++) {
           char c = str.charAt(i);
-          RenderedChar charPosition = charPositionList.get(i);
-          int x = x0 + charPosition.x;
+          int charPosition = charPositionList[i];
+          int x = x0 + charPosition;
           mGraphics.drawString(Character.toString(c), x, ry);
-          if (false) {
-            mGraphics.drawRect(x, ry - f.getAscent(), charPosition.width, f.getAscent());
-          }
         }
       }
     }
     return maxWidth;
   }
 
-  private static int determineStringWidth(List<RenderedChar> rcl) {
-    if (rcl.isEmpty())
+  private static int determineStringWidth(int[] rcl) {
+    if (rcl.length == 0)
       return 0;
-    RenderedChar last = last(rcl);
-    return last.x + last.width;
+    return rcl[rcl.length - 1];
   }
 
-  private List<RenderedChar> determineCharPositions(Style style, FontMetrics metrics, String text) {
-    List<RenderedChar> result = arrayList();
+  private int[] determineCharPositions(Style style, FontMetrics metrics, String text) {
+    IntArray.Builder charXPositions = IntArray.newBuilder();
 
     int x = 0;
 
     for (int i = 0; i < text.length(); i++) {
       char c = text.charAt(i);
-
-      RenderedChar charInfo = new RenderedChar();
       int cw = metrics.charWidth(c);
 
       IRect rect = mCharAdjustmentMap.getRect(c);
@@ -370,25 +365,22 @@ public final class PagePlotter extends BaseObject {
         // We need to plot the character n pixels further to the left,
         // and advance the cursor so the next character is drawn past the bounding rectangle
         //
-        int xShift = -rect.x + 1; // + 1 for a bit of padding...
+        int leftPadding = 1;
+        int rightPadding = 1;
+
+        int xShift = -rect.x + leftPadding;
+        cw = rect.width - xShift + rightPadding;
         x += xShift;
-        charInfo.width = rect.width - xShift;
       }
-      charInfo.x = x;
-      charInfo.width = cw;
-      x += charInfo.width;
-      result.add(charInfo);
+      charXPositions.add(x);
+      x += cw;
     }
-    return result;
+    charXPositions.add(x);
+    return charXPositions.array();
   }
 
   private static int smallPadding(Style style) {
     return style.barPadX() / 3;
-  }
-
-  private static class RenderedChar {
-    int x;
-    int width;
   }
 
   private static class TextEntry {
