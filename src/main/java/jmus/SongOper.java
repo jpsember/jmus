@@ -58,7 +58,7 @@ public class SongOper extends AppOper {
     mConfig = config();
 
     if (DEV) {
-      if (true) {
+      if (false) {
         TextUtil.experiment();
         return;
       }
