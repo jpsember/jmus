@@ -314,7 +314,7 @@ public final class PagePlotter extends BaseObject {
     int py = topLeft.y;
     int x0 = topLeft.x;
 
-    int row = -1;
+    int row = INIT_INDEX;
     for (TextEntry tx : mTextEntries) {
       row++;
       if (tx.text.startsWith("~")) {

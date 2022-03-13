@@ -138,7 +138,7 @@ public final class MusUtil {
 
   public static Map<String, MusicKey> keyMap() {
     if (sMusicKeyMap == null) {
-      JSMap jsMap = new JSMap(Files.readString(MusUtil.class, "scales.json"));
+      JSMap jsMap = JSMap.fromResource(MusUtil.class, "scales.json");
       Map<String, MusicKey> mp = hashMap();
       for (String name : jsMap.keySet())
         mp.put(name, Files.parseAbstractData(MusicKey.DEFAULT_INSTANCE, jsMap.getMap(name)));
@@ -246,7 +246,7 @@ public final class MusUtil {
 
     for (MusicSection section : song.sections()) {
       lineBuilder.append("\n");
-      int chordNum = -1;
+      int chordNum = INIT_INDEX;
       for (Chord chord : section.chords()) {
         chordNum++;
         int cursor = lineBuilder.length();
@@ -265,7 +265,7 @@ public final class MusUtil {
 
   private static List<Style> getStyleList() {
     if (sStyleList == null) {
-      JSMap jsonMap = new JSMap(Files.readString(MusUtil.class, "styles.json"));
+      JSMap jsonMap = JSMap.fromResource(MusUtil.class, "styles.json");
       JSList listOfMaps = jsonMap.getList("");
       List<Style> styleList = arrayList();
       for (JSMap styleJson : listOfMaps.asMaps()) {

@@ -65,7 +65,7 @@ public class QuizGenerator {
       int x0 = x - (int) (style.barPadX() * 1.6);
       int x1 = x + xAdvance * chords.size();
 
-      int rowNum = -1;
+      int rowNum = INIT_INDEX;
       for (MusicKey key : keys) {
         rowNum++;
         {
