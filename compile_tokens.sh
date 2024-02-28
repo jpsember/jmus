@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -eu
 
-tokncompile tokens.rxp > src/main/resources/jmus/tokens.dfa
+dev dfa tokens.rxp src/main/resources/jmus/tokens.dfa ids src/main/java/jmus/MusUtil.java
